@@ -32,6 +32,24 @@ def apogee(**kwargs):
         raise ImportError("Loading the APOGEE data requires the jobovy/apogee module to be installed")
     return apread.allStar(**kwargs)
 
+def apogeerc(**kwargs):
+    """
+    NAME:
+       apogeerc
+    PURPOSE:
+       read the APOGEE RC data
+    INPUT:
+       main= (default: False) if True, only select stars in the main survey
+       dr= data reduction to load the catalog for (automatically set based on APOGEE_REDUX if not given explicitly)
+    OUTPUT:
+       APOGEE RC sample data
+    HISTORY:
+       2013-10-08 - Written - Bovy (IAS)
+    """
+    if not _APOGEE_LOADED:
+        raise ImportError("Loading the APOGEE RC data requires the jobovy/apogee module to be installed")
+    return apread.rcsample(**kwargs)
+  
 def galah(dr=1):
     """
     NAME:
