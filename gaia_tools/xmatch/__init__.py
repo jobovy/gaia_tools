@@ -5,6 +5,40 @@ import shutil
 import tempfile
 import subprocess
 import numpy
+import astropy.coordinates as acoords
+from astropy import units as u
+def xmatch(cat1,cat2,maxdist=2,
+           colRA1='RA',colDec1='DEC',
+           colRA2='RA',colDec2='DEC'):
+    """
+    NAME:
+       xmatch
+    PURPOSE:
+       cross-match two catalogs
+    INPUT:
+       cat1 - First catalog
+       cat2 - Second catalog
+       maxdist= (2) maximum distance in arcsec
+       colRA1= ('RA') name of the tag in cat with the right ascension in cat1
+       colDec1= ('DEC') name of the tag in cat with the declination in cat1
+       colRA2= ('RA') name of the tag in cat with the right ascension in cat2
+       colDec2= ('DEC') name of the tag in cat with the declination in cat2
+    OUTPUT:
+       (index into cat1 of matching objects,
+        index into cat2 of matching objects,
+        angular separation between matching objects)
+    HISTORY:
+       2016-09-12 - Written - Bovy (UofT)
+    """
+    mc1= acoords.ICRS(cat1[colRA1],cat1[colDec1],unit=(u.degree, u.degree))
+    mc2= acoords.ICRS(cat2[colRA2],cat2[colDec2],unit=(u.degree, u.degree))
+    idx,d2d,d3d = mc1.match_to_catalog_sky(mc2)
+    m1= numpy.arange(len(cat1))
+    mindx= d2d < maxdist*u.arcsec
+    m1= m1[mindx]
+    m2= idx[mindx]
+    return (m1,m2,d2d[mindx])
+
 def cds(cat,xcat='vizier:Tycho2',maxdist=2,colRA='RA',colDec='DEC',
         savefilename=None):
     """
