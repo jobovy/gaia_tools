@@ -1,15 +1,19 @@
 gaia_tools
 -----------
 
-Tools for working with the @ESAGaia data and related data sets
+Tools for working with the `ESA/Gaia <http://sci.esa.int/gaia/>`__
+data and related data sets (`APOGEE
+<http://www.sdss.org/surveys/apogee/>`__, `GALAH
+<https://galah-survey.org/>`__, and `RAVE
+<https://www.rave-survey.org/project/>`__).
 
 .. contents::
 
 AUTHORS
 ========
 
-Jo Bovy - bovy at astro dot utoronto dot ca
-You!
+ * Jo Bovy - bovy at astro dot utoronto dot ca
+ * You!
 
 ACKNOWLEDGING USE OF THIS CODE
 ==============================
@@ -33,7 +37,7 @@ or
 DEPENDENCIES AND PYTHON VERSIONS
 =================================
 
-This package requires `NumPy <http://numpy.scipy.org/>`__ and `astropy
+This package requires `NumPy <http://www.numpy.org/>`__ and `astropy
 <http://www.astropy.org/>`__. Some functions require `Scipy
 <http://www.scipy.org/>`__ and the `apogee
 <https://github.com/jobovy/apogee>`__ package. 
@@ -76,6 +80,11 @@ various APOGEE data files, for example::
 	apogee_cat= gload.apogee()
 	rc_cat= gload.apogeerc()
 
+Similarly, you can load the `RAVE
+<https://www.rave-survey.org/project/>`__ data as::
+
+	rave_cat= gload.rave()
+
 To match catalogs to each other, use the tools in
 ``gaia_tools.xmatch``. For example, to match the GALAH and APOGEE-RC
 catalogs loaded above and compare the effective temperatures for the
@@ -102,5 +111,23 @@ GALAH catalog to the Tycho-2 catalog, do the following::
    print(galah_cat['RA'][matches_indx[0]],tyc2_matches['RA_1'][0],tyc2_matches['pmRA'][matches_indx[0]],tyc2_matches['pmDE'][matches_indx[0]])
    ('209.8838244', 209.88408100000001, -23.100000000000001, -10.699999999999999)
 
-Let's see how these proper motions hold up in Gaia DR1!
+Let's see how these proper motions hold up in Gaia DR1! If you want to
+download a catalog from CDS, you can use
+``gaia_tools.load.download.vizier``.
 
+
+API
+====
+
+(May or may not be fully up-to-date)
+
+ * ``gaia_tools.load``
+     * ``gaia_tools.load.apogee``
+     * ``gaia_tools.load.apogeerc``
+     * ``gaia_tools.load.galah``
+     * ``gaia_tools.load.rave``
+         * ``gaia_tools.load.download.vizier``
+ * ``gaia_tools.xmatch``
+     * ``gaia_tools.xmatch.xmatch``
+     * ``gaia_tools.xmatch.cds``
+     * ``gaia_tools.xmatch.cds_matchback``
