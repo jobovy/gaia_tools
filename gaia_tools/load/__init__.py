@@ -70,3 +70,24 @@ def galah(dr=1):
     data['RA']._fill_value= numpy.array([-9999.99])
     data['dec']._fill_value= numpy.array([-9999.99])
     return data
+
+def rave(dr=4):
+    """
+    NAME:
+       rave
+    PURPOSE:
+       Load the RAVE data
+    INPUT:
+       dr= (4) data release
+    OUTPUT:
+       data table
+    HISTORY:
+       2016-09-12 - Written - Bovy (UofT)
+    """
+    filePath, ReadMePath= path.ravePath(dr=dr)
+    if not os.path.exists(filePath):
+        download.rave(dr=dr)
+    data= astropy.io.ascii.read(filePath,readme=ReadMePath)
+    return data
+
+    
