@@ -63,15 +63,19 @@ Catalog reading and cross-matching
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The basic use of the code is to read various data files and match them
-to each other. For example, to load the data for the `GALAH
-<https://galah-survey.org/>`__ survey's DR1, do::
+to each other. For example, to load the `TGAS <http://www.cosmos.esa.int/web/gaia/iow_20150115>`__ data, do::
 
     import gaia_tools.load as gload
-    galah_cat= gload.galah()
+    tgas_cat= gload.tgas()
 
-The first time you use this function, it will download the GALAH data
-and return the catalog (the data is stored locally, so downloading
-only happens once).
+The first time you use this function, it will download the TGAS data
+and return the catalog (the data is stored locally in a manner that
+mirrors the Gaia archive, so downloading only happens once).
+
+Similarly, to get data for the `GALAH <https://galah-survey.org/>`__
+survey's DR1, do::
+
+    galah_cat= gload.galah()
 
 Through an interface to the more detailed `apogee
 <https://github.com/jobovy/apogee>`__ package, you can also load
