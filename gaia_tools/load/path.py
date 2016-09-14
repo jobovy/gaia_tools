@@ -8,3 +8,8 @@ def ravePath(dr=4):
     return (os.path.join(_GAIA_TOOLS_DATA,
                          'rave','DR%i' % dr,'ravedr%i.dat' % dr),
             os.path.join(_GAIA_TOOLS_DATA,'rave','DR%i' % dr,'ReadMe'))
+
+def tgasPath(dr=1):
+    return [os.path.join(_GAIA_TOOLS_DATA,'Gaia','tgas_source','fits',
+                         'TgasSource_000-000-%03i.fits' % ii)
+            for ii in range(16)]

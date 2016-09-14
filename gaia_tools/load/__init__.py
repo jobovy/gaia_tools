@@ -1,6 +1,8 @@
 import os, os.path
 import numpy
+import numpy.lib.recfunctions
 import astropy.io.ascii
+import fitsio
 _APOGEE_LOADED= True
 try:
     import apogee.tools.read as apread
@@ -89,5 +91,25 @@ def rave(dr=4):
         download.rave(dr=dr)
     data= astropy.io.ascii.read(filePath,readme=ReadMePath)
     return data
+
+def tgas(dr=1):
+    """
+    NAME:
+       tgas
+    PURPOSE:
+       Load the TGAS data
+    INPUT:
+       dr= (1) data release
+    OUTPUT:
+       data table
+    HISTORY:
+       2016-09-14 - Written - Bovy (UofT)
+    """
+    filePaths= path.tgasPath(dr=dr)
+    if not numpy.all([os.path.exists(filePath) for filePath in filePaths]):
+        download.tgas(dr=dr)
+    return numpy.lib.recfunctions.stack_arrays(\
+        [fitsio.read(filePath,ext=1) for filePath in filePaths],
+        autoconvert=True)
 
     

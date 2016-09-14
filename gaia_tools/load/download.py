@@ -40,6 +40,17 @@ def rave(dr=4,verbose=True):
             ReadMePath,verbose=verbose)
     return None    
 
+def tgas(dr=1,verbose=True):
+    filePaths= path.tgasPath(dr=dr)
+    for filePath in filePaths:
+        if os.path.exists(filePath): continue
+        downloadPath= filePath.replace(path._GAIA_TOOLS_DATA,
+                                       'http://cdn.gea.esac.esa.int')
+        print(downloadPath)
+        _download_file(downloadPath,filePath,verbose=verbose)
+    return None    
+    
+
 def vizier(cat,filePath,ReadMePath,
            catalogname='catalog.dat',readmename='ReadMe'):
     """
