@@ -11,6 +11,7 @@ setup(name='gaia_tools',
       long_description=long_description,
       url='https://github.com/jobovy/gaia_tools',
       package_dir = {'gaia_tools/': ''},
-      packages=['gaia_tools','gaia_tools/load'],
+      packages=['gaia_tools','gaia_tools/load',
+                'gaia_tools/xmatch'],
       install_requires=['numpy','astropy']
       )
