@@ -89,7 +89,10 @@ def rave(dr=4):
     filePath, ReadMePath= path.ravePath(dr=dr)
     if not os.path.exists(filePath):
         download.rave(dr=dr)
-    data= astropy.io.ascii.read(filePath,readme=ReadMePath)
+    if dr == 4:
+        data= astropy.io.ascii.read(filePath,readme=ReadMePath)
+    elif dr == 5:
+        data= numpy.genfromtxt(filePath,delimiter=',',names=True)
     return data
 
 def raveon(dr=5):

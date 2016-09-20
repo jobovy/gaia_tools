@@ -5,9 +5,14 @@ def galahPath(dr=1):
             os.path.join(_GAIA_TOOLS_DATA,'galah','DR%i' % dr,'ReadMe'))
 
 def ravePath(dr=4):
-    return (os.path.join(_GAIA_TOOLS_DATA,
-                         'rave','DR%i' % dr,'ravedr%i.dat' % dr),
-            os.path.join(_GAIA_TOOLS_DATA,'rave','DR%i' % dr,'ReadMe'))
+    if dr == 4:
+        return (os.path.join(_GAIA_TOOLS_DATA,
+                             'rave','DR%i' % dr,'ravedr%i.dat' % dr),
+                os.path.join(_GAIA_TOOLS_DATA,'rave','DR%i' % dr,'ReadMe'))
+    elif dr == 5:
+        return (os.path.join(_GAIA_TOOLS_DATA,
+                             'rave','DR%i' % dr,'RAVE_DR5.csv'),
+                None)
 
 def raveonPath(dr=5):
     return os.path.join(_GAIA_TOOLS_DATA,

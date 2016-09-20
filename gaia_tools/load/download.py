@@ -26,18 +26,21 @@ def galah(dr=1,verbose=True,spider=False):
     
 def rave(dr=4,verbose=True):
     filePath, ReadMePath= path.ravePath(dr=dr)
-    if os.path.exists(filePath): return None
+    #if os.path.exists(filePath): return None
     if dr == 4:
         vizier('III/272',filePath,ReadMePath,
                catalogname='ravedr4.dat',readmename='ReadMe')
     elif dr == 5:
         # Have to figure out what will happen tonight!
         _download_file(\
-            '',
-            filePath,verbose=verbose)
-        _download_file(\
-            '',
-            ReadMePath,verbose=verbose)
+            'https://www.rave-survey.org/data/files/single?name=DR5/RAVE_DR5.csv.gz',
+            filePath+'.gz',verbose=verbose)
+        # gunzip the file
+        try:
+            subprocess.check_call(['gunzip',
+                                   filePath+'.gz'])
+        except subprocess.CalledProcessError:
+            raise IOError('gunzipping the RAVE-DR5 catalog failed ...')
     return None    
 
 def raveon(dr=5,verbose=True,spider=False):
