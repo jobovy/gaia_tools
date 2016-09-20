@@ -73,15 +73,15 @@ def vizier(cat,filePath,ReadMePath,
        cat - name of the catalog (e.g., 'III/272' for RAVE, or J/A+A/... for journal-specific catalogs)
        filePath - path of the file where you want to store the catalog (note: you need to keep the name of the file the same as the catalogname to be able to read the file with astropy.io.ascii)
        ReadMePath - path of the file where you want to store the ReadMe file
-       catalogname= (catalog.dat)name of the catalog on the Vizier server
+       catalogname= (catalog.dat) name of the catalog on the Vizier server
        readmename= (ReadMe) name of the ReadMe file on the Vizier server
     OUTPUT:
        (nothing, just downloads)
     HISTORY:
        2016-09-12 - Written - Bovy (UofT)
     """
-    _download_file_vizier('III/272',filePath,catalogname='ravedr4.dat')
-    _download_file_vizier('III/272',ReadMePath,catalogname='ReadMe')
+    _download_file_vizier(cat,filePath,catalogname=catalogname)
+    _download_file_vizier(cat,ReadMePath,catalogname=readmename)
     return None
 
 def _download_file(downloadPath,filePath,verbose=False,spider=False):
