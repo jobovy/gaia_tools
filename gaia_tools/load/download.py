@@ -40,6 +40,15 @@ def rave(dr=4,verbose=True):
             ReadMePath,verbose=verbose)
     return None    
 
+def raveon(dr=5,verbose=True,spider=False):
+    filePath= path.raveonPath(dr=dr)
+    if os.path.exists(filePath): return None
+    if dr == 5:
+        _download_file(\
+            'https://zenodo.org/record/154381/files/RAVE-on-v1.0.fits.gz',
+            filePath,verbose=verbose,spider=spider)
+    return None    
+    
 def tgas(dr=1,verbose=True):
     filePaths= path.tgasPath(dr=dr)
     for filePath in filePaths:

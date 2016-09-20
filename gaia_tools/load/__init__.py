@@ -92,6 +92,25 @@ def rave(dr=4):
     data= astropy.io.ascii.read(filePath,readme=ReadMePath)
     return data
 
+def raveon(dr=5):
+    """
+    NAME:
+       raveon
+    PURPOSE:
+       Load the RAVE-on data
+    INPUT:
+       dr= (5) RAVE data release
+    OUTPUT:
+       data table
+    HISTORY:
+       2016-09-20 - Written - Bovy (UofT)
+    """
+    filePath= path.raveonPath(dr=dr)
+    if not os.path.exists(filePath):
+        download.raveon(dr=dr)
+    data= fitsio.read(filePath,1)
+    return data
+
 def tgas(dr=1):
     """
     NAME:
