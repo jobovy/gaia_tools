@@ -106,7 +106,17 @@ stars in common, you can do::
 	  0.39990234375
 
 which matches objects using their celestial coordinates using the
-default maximum separation of 2 arcsec.
+default maximum separation of 2 arcsec. To match catalogs with
+coordinates at epoch 2000.0 to the TGAS data, which is at epoch 2015.,
+give the ``epoch1`` and ``epoch2`` keyword. For example, to
+cross-match the APOGEE-RC data and TGAS do::
+
+	    tgas= gload.tgas()
+	    aprc= gload.apogeerc()
+	    m1,m2,sep= xmatch.xmatch(aprc,tgas,colRA2='ra',colDec2='dec',epoch2=2015.)
+	    aprc= aprc[m1]
+	    tgas= tgas[m2]
+
 
 Further, it is possible to cross-match any catalog to the catalogs in
 the CDS database using the `CDS cross-matching service
