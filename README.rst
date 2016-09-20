@@ -85,9 +85,11 @@ various APOGEE data files, for example::
 	rc_cat= gload.apogeerc()
 
 Similarly, you can load the `RAVE
-<https://www.rave-survey.org/project/>`__ data as::
+<https://www.rave-survey.org/project/>`__ and `RAVE-on
+<https://zenodo.org/record/154381#.V-D27pN97ox>`__ data as::
 
 	rave_cat= gload.rave()
+	raveon_cat= gload.raveon()
 
 To match catalogs to each other, use the tools in
 ``gaia_tools.xmatch``. For example, to match the GALAH and APOGEE-RC
