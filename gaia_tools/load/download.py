@@ -24,7 +24,7 @@ def galah(dr=1,verbose=True,spider=False):
             ReadMePath,verbose=verbose,spider=spider)
     return None    
     
-def rave(dr=4,verbose=True):
+def rave(dr=5,verbose=True):
     filePath, ReadMePath= path.ravePath(dr=dr)
     #if os.path.exists(filePath): return None
     if dr == 4:

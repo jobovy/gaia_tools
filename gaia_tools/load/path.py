@@ -4,7 +4,7 @@ def galahPath(dr=1):
     return (os.path.join(_GAIA_TOOLS_DATA,'galah','DR%i' % dr,'catalog.dat'),
             os.path.join(_GAIA_TOOLS_DATA,'galah','DR%i' % dr,'ReadMe'))
 
-def ravePath(dr=4):
+def ravePath(dr=5):
     if dr == 4:
         return (os.path.join(_GAIA_TOOLS_DATA,
                              'rave','DR%i' % dr,'ravedr%i.dat' % dr),

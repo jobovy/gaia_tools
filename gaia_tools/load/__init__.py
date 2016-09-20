@@ -73,14 +73,14 @@ def galah(dr=1):
     data['dec']._fill_value= numpy.array([-9999.99])
     return data
 
-def rave(dr=4):
+def rave(dr=5):
     """
     NAME:
        rave
     PURPOSE:
        Load the RAVE data
     INPUT:
-       dr= (4) data release
+       dr= (5) data release
     OUTPUT:
        data table
     HISTORY:
