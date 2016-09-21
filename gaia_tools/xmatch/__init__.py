@@ -10,7 +10,8 @@ from astropy import units as u
 def xmatch(cat1,cat2,maxdist=2,
            colRA1='RA',colDec1='DEC',epoch1=2000.,
            colRA2='RA',colDec2='DEC',epoch2=2000.,
-           colpmRA2='pmra',colpmDec2='pmdec'):
+           colpmRA2='pmra',colpmDec2='pmdec',
+           swap=False):
     """
     NAME:
        xmatch
@@ -28,6 +29,7 @@ def xmatch(cat1,cat2,maxdist=2,
        epoch= (2000.) epoch of the coordinates in cat2
        colpmRA2= ('pmra') name of the tag in cat2 with the proper motion in right ascension in degree in cat2 (assumed to be ICRS; includes cos(Dec)) [only used when epochs are different]
        colpmDec2= ('pmdec') name of the tag in cat2 with the proper motion in declination in degree in cat2 (assumed to be ICRS) [only used when epochs are different]
+       swap= (False) if False, find closest matches in cat2 for each cat1 source, if False do the opposite (important when one of the catalogs has duplicates)
     OUTPUT:
        (index into cat1 of matching objects,
         index into cat2 of matching objects,
@@ -48,12 +50,19 @@ def xmatch(cat1,cat2,maxdist=2,
                           unit=(u.degree, u.degree),frame='icrs')
     mc2= acoords.SkyCoord(cat2[colRA2]-dra,cat2[colDec2]-ddec,
                           unit=(u.degree, u.degree),frame='icrs')
-    idx,d2d,d3d = mc1.match_to_catalog_sky(mc2)
-    m1= numpy.arange(len(cat1))
+    if swap:
+        idx,d2d,d3d = mc2.match_to_catalog_sky(mc1)
+        m1= numpy.arange(len(cat2))
+    else:
+        idx,d2d,d3d = mc1.match_to_catalog_sky(mc2)
+        m1= numpy.arange(len(cat1))
     mindx= d2d < maxdist*u.arcsec
     m1= m1[mindx]
     m2= idx[mindx]
-    return (m1,m2,d2d[mindx])
+    if swap:
+        return (m2,m1,d2d[mindx])
+    else:
+        return (m1,m2,d2d[mindx])
 
 def cds(cat,xcat='vizier:Tycho2',maxdist=2,colRA='RA',colDec='DEC',
         savefilename=None):
