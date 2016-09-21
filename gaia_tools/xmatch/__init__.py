@@ -3,6 +3,7 @@ import os, os.path
 import csv
 import shutil
 import tempfile
+import warnings
 import subprocess
 import numpy
 import astropy.coordinates as acoords
@@ -37,6 +38,9 @@ def xmatch(cat1,cat2,maxdist=2,
     HISTORY:
        2016-09-12 - Written - Bovy (UofT)
     """
+    if ('parallax' in cat1.dtype.fields and epoch1 != 2015.)\
+            or ('parallax' in cat2.dtype.fields and epoch2 != 2015.):
+        warnings.warn("You appear to be using a Gaia catalog, but are not setting the epoch to 2015., which may lead to incorrect matches")
     depoch= epoch2-epoch1
     if depoch != 0.:
         # Use proper motion to get both catalogs at the same time
