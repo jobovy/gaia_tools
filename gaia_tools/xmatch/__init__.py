@@ -39,8 +39,9 @@ def xmatch(cat1,cat2,maxdist=2,
        2016-09-12 - Written - Bovy (UofT)
        2016-09-21 - Account for Gaia epoch 2015 - Bovy (UofT)
     """
-    if ('parallax' in cat1.dtype.fields and epoch1 != 2015.)\
-            or ('parallax' in cat2.dtype.fields and epoch2 != 2015.):
+    if ('ref_epoch' in cat1.dtype.fields and numpy.fabs(epoch1-2015.) > 0.01)\
+            or ('ref_epoch' in cat2.dtype.fields and \
+                    numpy.fabs(epoch2-2015.) > 0.01):
         warnings.warn("You appear to be using a Gaia catalog, but are not setting the epoch to 2015., which may lead to incorrect matches")
     depoch= epoch2-epoch1
     if depoch != 0.:
@@ -94,7 +95,7 @@ def cds(cat,xcat='vizier:Tycho2',maxdist=2,colRA='RA',colDec='DEC',
        2016-09-12 - Written based on RC catalog code - Bovy (UofT)
        2016-09-21 - Account for Gaia epoch 2015 - Bovy (UofT)
     """
-    if 'parallax' in cat.dtype.fields and epoch != 2015.:
+    if 'ref_epoch' in cat.dtype.fields and numpy.fabs(epoch-2015.) > 0.01:
         warnings.warn("You appear to be using a Gaia catalog, but are not setting the epoch to 2015., which may lead to incorrect matches")
     depoch= epoch-2000.
     if depoch != 0.:
