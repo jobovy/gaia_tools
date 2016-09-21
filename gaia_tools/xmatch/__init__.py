@@ -37,6 +37,7 @@ def xmatch(cat1,cat2,maxdist=2,
         angular separation between matching objects)
     HISTORY:
        2016-09-12 - Written - Bovy (UofT)
+       2016-09-21 - Account for Gaia epoch 2015 - Bovy (UofT)
     """
     if ('parallax' in cat1.dtype.fields and epoch1 != 2015.)\
             or ('parallax' in cat2.dtype.fields and epoch2 != 2015.):
@@ -69,6 +70,7 @@ def xmatch(cat1,cat2,maxdist=2,
         return (m1,m2,d2d[mindx])
 
 def cds(cat,xcat='vizier:Tycho2',maxdist=2,colRA='RA',colDec='DEC',
+        epoch=2000.,colpmRA='pmra',colpmDec='pmdec',
         savefilename=None):
     """
     NAME:
@@ -81,13 +83,28 @@ def cds(cat,xcat='vizier:Tycho2',maxdist=2,colRA='RA',colDec='DEC',
        maxdist= (2) maximum distance in arcsec
        colRA= ('RA') name of the tag in cat with the right ascension
        colDec= ('DEC') name of the tag in cat with the declination
+       epoch= (2000.) epoch of the coordinates in cat
+       colpmRA= ('pmra') name of the tag in cat with the proper motion in right ascension in degree in cat (assumed to be ICRS; includes cos(Dec)) [only used when epoch != 2000.]
+       colpmDec= ('pmdec') name of the tag in cat with the proper motion in declination in degree in cat (assumed to be ICRS) [only used when epoch != 2000.]
        savefilename= (None) if set, save the output from CDS to this path; can match back using cds_matchback
     OUTPUT:
        (xcat entries for those that match,
        indices into cat of matching sources: index[0] is cat index of xcat[0])
     HISTORY:
        2016-09-12 - Written based on RC catalog code - Bovy (UofT)
+       2016-09-21 - Account for Gaia epoch 2015 - Bovy (UofT)
     """
+    if 'parallax' in cat.dtype.fields and epoch != 2015.:
+        warnings.warn("You appear to be using a Gaia catalog, but are not setting the epoch to 2015., which may lead to incorrect matches")
+    depoch= epoch-2000.
+    if depoch != 0.:
+        # Use proper motion to get both catalogs at the same time
+        dra=cat[colpmRA]/numpy.cos(cat[colDec]/180.*numpy.pi)\
+            /3600000.*depoch
+        ddec= cat[colpmDec]/3600000.*depoch
+    else:
+        dra= 0.
+        ddec= 0.
     # Write positions
     posfilename= tempfile.mktemp('.csv',dir=os.getcwd())
     resultfilename= tempfile.mktemp('.csv',dir=os.getcwd())
@@ -95,7 +112,7 @@ def cds(cat,xcat='vizier:Tycho2',maxdist=2,colRA='RA',colDec='DEC',
         wr= csv.writer(csvfile,delimiter=',',quoting=csv.QUOTE_MINIMAL)
         wr.writerow(['RA','DEC'])
         for ii in range(len(cat)):
-            wr.writerow([cat[ii][colRA],cat[ii][colDec]])
+            wr.writerow([cat[ii][colRA]-dra[ii],cat[ii][colDec]]-ddec[ii])
     # Send to CDS for matching
     result= open(resultfilename,'w')
     try:
