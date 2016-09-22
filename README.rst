@@ -37,10 +37,13 @@ or
 DEPENDENCIES AND PYTHON VERSIONS
 =================================
 
-This package requires `NumPy <http://www.numpy.org/>`__ and `astropy
-<http://www.astropy.org/>`__. Some functions require `Scipy
-<http://www.scipy.org/>`__ and the `apogee
-<https://github.com/jobovy/apogee>`__ package. 
+This package requires `NumPy <http://www.numpy.org/>`__, `astropy
+<http://www.astropy.org/>`__, and `fitsio
+<https://github.com/esheldon/fitsio>`__. Some functions require `Scipy
+<http://www.scipy.org/>`__. If the `apogee
+<https://github.com/jobovy/apogee>`__ package this package will use
+that to access the APOGEE data; otherwise they are downloaded
+separately.
 
 This package should work in both python 2 and 3. Please open an `issue
 <https://github.com/jobovy/gaia_tools/issues>`__ if you find a part of the
