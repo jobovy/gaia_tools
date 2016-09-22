@@ -13,5 +13,5 @@ setup(name='gaia_tools',
       package_dir = {'gaia_tools/': ''},
       packages=['gaia_tools','gaia_tools/load',
                 'gaia_tools/xmatch'],
-      install_requires=['numpy','astropy']
+      install_requires=['numpy','astropy','fitsio']
       )
