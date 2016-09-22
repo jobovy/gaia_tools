@@ -12,6 +12,19 @@ import subprocess
 from gaia_tools.load import path
 _MAX_NTRIES= 2
 _ERASESTR= "                                                                                "
+def apogee(dr=13,verbose=True,spider=False):
+    filePath= path.apogeePath(dr=dr)
+    if os.path.exists(filePath): return None
+    if dr == 12:
+        _download_file(\
+            'http://data.sdss3.org/sas/dr12/apogee/spectro/redux/r5/allStar-v603.fits',
+            filePath,verbose=verbose,spider=spider)
+    elif dr == 13:
+        _download_file(\
+            'https://data.sdss.org/sas/dr13/apogee/spectro/redux/r6/allStar-l30e.2.fits',
+            filePath,verbose=verbose,spider=spider)
+    return None    
+    
 def galah(dr=1,verbose=True,spider=False):
     filePath, ReadMePath= path.galahPath(dr=dr)
     if os.path.exists(filePath): return None

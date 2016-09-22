@@ -1,5 +1,13 @@
 import os, os.path
 _GAIA_TOOLS_DATA= os.getenv('GAIA_TOOLS_DATA')
+def apogeePath(dr=13):
+    if dr == 12:
+        return os.path.join(_GAIA_TOOLS_DATA,'apogee','DR%i' % dr,
+                            'allStar-v603.fits')
+    elif dr == 13:
+        return os.path.join(_GAIA_TOOLS_DATA,'apogee','DR%i' % dr,
+                            'allStar-l30e.2.fits')
+
 def galahPath(dr=1):
     return (os.path.join(_GAIA_TOOLS_DATA,'galah','DR%i' % dr,'catalog.dat'),
             os.path.join(_GAIA_TOOLS_DATA,'galah','DR%i' % dr,'ReadMe'))

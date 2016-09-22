@@ -1,4 +1,5 @@
 import os, os.path
+import warnings
 import numpy
 import numpy.lib.recfunctions
 import astropy.io.ascii
@@ -14,6 +15,11 @@ def apogee(**kwargs):
     PURPOSE:
        read the APOGEE allStar file
     INPUT:
+       IF the apogee package is not installed:
+           dr= (13) SDSS data release
+
+       ELSE you can use the same keywords as apogee.tools.read.allstar:
+
        rmcommissioning= (default: True) if True, only use data obtained after commissioning
        main= (default: False) if True, only select stars in the main survey
        exclude_star_bad= (False) if True, remove stars with the STAR_BAD flag set in ASPCAPFLAG
@@ -31,8 +37,14 @@ def apogee(**kwargs):
        2013-09-06 - Written - Bovy (IAS)
     """
     if not _APOGEE_LOADED:
-        raise ImportError("Loading the APOGEE data requires the jobovy/apogee module to be installed")
-    return apread.allStar(**kwargs)
+        warnings.warn("Falling back on simple APOGEE interface; for more functionality, install the jobovy/apogee package")
+        dr= kwargs.get('dr',13)
+        filePath= path.apogeePath(dr=dr)
+        if not os.path.exists(filePath):
+            download.apogee(dr=dr)
+        return fitsio.read(filePath,1)
+    else:
+        return apread.allStar(**kwargs)
 
 def apogeerc(**kwargs):
     """
