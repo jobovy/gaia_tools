@@ -145,6 +145,7 @@ API
      * ``gaia_tools.load.apogeerc``
      * ``gaia_tools.load.galah``
      * ``gaia_tools.load.rave``
+     * ``gaia_tools.load.raveon``
          * ``gaia_tools.load.download.vizier``
  * ``gaia_tools.xmatch``
      * ``gaia_tools.xmatch.xmatch``
