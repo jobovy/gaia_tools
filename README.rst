@@ -41,9 +41,10 @@ This package requires `NumPy <http://www.numpy.org/>`__, `astropy
 <http://www.astropy.org/>`__, and `fitsio
 <https://github.com/esheldon/fitsio>`__. Some functions require `Scipy
 <http://www.scipy.org/>`__. If the `apogee
-<https://github.com/jobovy/apogee>`__ package this package will use
-that to access the APOGEE data; otherwise they are downloaded
-separately.
+<https://github.com/jobovy/apogee>`__ package is installed, this
+package will use that to access the APOGEE data; otherwise they are
+downloaded separately into the **GAIA_TOOLS_DATA** directory (see
+below).
 
 This package should work in both python 2 and 3. Please open an `issue
 <https://github.com/jobovy/gaia_tools/issues>`__ if you find a part of the
