@@ -8,6 +8,10 @@ def apogeePath(dr=13):
         return os.path.join(_GAIA_TOOLS_DATA,'apogee','DR%i' % dr,
                             'allStar-l30e.2.fits')
 
+def apogeercPath(dr=13):
+    return os.path.join(_GAIA_TOOLS_DATA,'apogee','DR%i' % dr,
+                        'apogee-rc-DR%i.fits' % dr)
+
 def galahPath(dr=1):
     return (os.path.join(_GAIA_TOOLS_DATA,'galah','DR%i' % dr,'catalog.dat'),
             os.path.join(_GAIA_TOOLS_DATA,'galah','DR%i' % dr,'ReadMe'))

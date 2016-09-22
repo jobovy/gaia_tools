@@ -25,6 +25,14 @@ def apogee(dr=13,verbose=True,spider=False):
             filePath,verbose=verbose,spider=spider)
     return None    
     
+def apogeerc(dr=13,verbose=True,spider=False):
+    filePath= path.apogeercPath(dr=dr)
+    if os.path.exists(filePath): return None
+    _download_file(\
+        'https://data.sdss.org/sas/dr%i/apogee/vac/apogee-rc/cat/apogee-rc-DR%i.fits' % (dr,dr),
+        filePath,verbose=verbose,spider=spider)
+    return None    
+    
 def galah(dr=1,verbose=True,spider=False):
     filePath, ReadMePath= path.galahPath(dr=dr)
     if os.path.exists(filePath): return None

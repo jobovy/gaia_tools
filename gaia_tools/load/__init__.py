@@ -53,6 +53,11 @@ def apogeerc(**kwargs):
     PURPOSE:
        read the APOGEE RC data
     INPUT:
+       IF the apogee package is not installed:
+           dr= (13) SDSS data release
+
+       ELSE you can use the same keywords as apogee.tools.read.rcsample:
+
        main= (default: False) if True, only select stars in the main survey
        dr= data reduction to load the catalog for (automatically set based on APOGEE_REDUX if not given explicitly)
     OUTPUT:
@@ -61,8 +66,14 @@ def apogeerc(**kwargs):
        2013-10-08 - Written - Bovy (IAS)
     """
     if not _APOGEE_LOADED:
-        raise ImportError("Loading the APOGEE RC data requires the jobovy/apogee module to be installed")
-    return apread.rcsample(**kwargs)
+        warnings.warn("Falling back on simple APOGEE interface; for more functionality, install the jobovy/apogee package")
+        dr= kwargs.get('dr',13)
+        filePath= path.apogeercPath(dr=dr)
+        if not os.path.exists(filePath):
+            download.apogeerc(dr=dr)
+        return fitsio.read(filePath,1)
+    else:
+        return apread.rcsample(**kwargs)
   
 def galah(dr=1):
     """
