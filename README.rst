@@ -172,6 +172,8 @@ the 15 year difference. This can be done as follows::
 					epoch1=2000.,epoch2=2015.,swap=True)
     rave_cat= rave_cat[m1]
     tgas= tgas[m2]
+    print(len(rave_cat))
+    216201
 
 The ``xmatch`` function is setup such that the second catalog is the
 one that contains the proper motion if the epochs are different. This
@@ -184,6 +186,53 @@ contain duplicates, we can do the match the other way around using
 no way to rank the duplicates by, e.g., their signal-to-noise ratio in
 RAVE.
 
+Match LAMOST to TGAS
+^^^^^^^^^^^^^^^^^^^^^
+
+Similar to RAVE above, we do::
+
+    tgas= gaia_tools.load.tgas()
+    lamost_cat= gaia_tools.load.lamost()
+    m1,m2,sep= gaia_tools.xmatch.xmatch(lamost_cat,tgas,
+					colRA1='ra',colDec1='dec',
+					colRA2='ra',colDec2='dec',
+					epoch1=2000.,epoch2=2015.,swap=True)
+    lamost_cat= lamost_cat[m1]
+    tgas= tgas[m2]
+    print(len(lamost_cat))
+    108910
+
+Match APOGEE or APOGEE-RC to TGAS
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Similar to RAVE above, we do::
+
+    tgas= gaia_tools.load.tgas()
+    apogee_cat= gaia_tools.load.apogee()
+    m1,m2,sep= gaia_tools.xmatch.xmatch(apogee_cat,tgas,
+					colRA2='ra',colDec2='dec',
+					epoch1=2000.,epoch2=2015.,swap=True)
+    apogee_cat= apogee_cat[m1]
+    tgas= tgas[m2]
+    print(len(apogee_cat))
+    20113
+
+Match GALAH to TGAS
+^^^^^^^^^^^^^^^^^^^^
+
+Similar to RAVE above, we do::
+
+    tgas= gaia_tools.load.tgas()
+    galah_cat= gaia_tools.load.galah()
+    m1,m2,sep= gaia_tools.xmatch.xmatch(galah_cat,tgas,
+					colRA1='RA',colDec1='dec',
+					colRA2='ra',colDec2='dec',
+					epoch1=2000.,epoch2=2015.,swap=True)
+    galah_cat= galah_cat[m1]
+    tgas= tgas[m2]
+    print(len(galah_cat))
+    7919
+    
 API
 ====
 
