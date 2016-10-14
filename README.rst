@@ -151,6 +151,38 @@ download a catalog from CDS, you can use
 ``gaia_tools.load.download.vizier``.
 
 
+RECIPES
+========
+
+Match RAVE to TGAS taking into account the epoch difference
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+RAVE celestial positions (and more generally all of the positions in
+the spectoscopic catalogs) are given at epoch J2000, while TGAS
+reports positions at J2015. To match stars between RAVE and TGAS, we
+therefore have to take into account the proper motion to account for
+the 15 year difference. This can be done as follows::
+
+    tgas= gaia_tools.load.tgas()
+    rave_cat= gaia_tools.load.rave()
+    m1,m2,sep= gaia_tools.xmatch.xmatch(rave_cat,tgas,
+					colRA1='RAdeg',colDec1='DEdeg',
+					colRA2='ra',colDec2='dec',
+					epoch1=2000.,epoch2=2015.,swap=True)
+    rave_cat= rave_cat[m1]
+    tgas= tgas[m2]
+
+The ``xmatch`` function is setup such that the second catalog is the
+one that contains the proper motion if the epochs are different. This
+is why TGAS is the second catalog. Normally, ``xmatch`` finds matches
+for all entries in the first catalog. However, RAVE contains
+duplicates, so this would return duplicate matches and the resulting
+matched catalog would still contain duplicates. Because TGAS does not
+contain duplicates, we can do the match the other way around using
+``swap=True`` and get a catalog without duplicates. There is currently
+no way to rank the duplicates by, e.g., their signal-to-noise ratio in
+RAVE.
+
 API
 ====
 
@@ -160,9 +192,10 @@ API
      * ``gaia_tools.load.apogee``
      * ``gaia_tools.load.apogeerc``
      * ``gaia_tools.load.galah``
+     * ``gaia_tools.load.lamost``
      * ``gaia_tools.load.rave``
      * ``gaia_tools.load.raveon``
-         * ``gaia_tools.load.download.vizier``
+       * ``gaia_tools.load.download.vizier``
  * ``gaia_tools.xmatch``
      * ``gaia_tools.xmatch.xmatch``
      * ``gaia_tools.xmatch.cds``
