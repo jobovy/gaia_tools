@@ -217,6 +217,9 @@ Similar to RAVE above, we do::
     print(len(apogee_cat))
     20113
 
+Make that second line ``apogee_cat= gaia_tools.load.apogeerc()`` for
+the APOGEE-RC catalog.
+
 Match GALAH to TGAS
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -245,7 +248,7 @@ API
      * ``gaia_tools.load.lamost``
      * ``gaia_tools.load.rave``
      * ``gaia_tools.load.raveon``
-       * ``gaia_tools.load.download.vizier``
+         * ``gaia_tools.load.download.vizier``
  * ``gaia_tools.xmatch``
      * ``gaia_tools.xmatch.xmatch``
      * ``gaia_tools.xmatch.cds``
