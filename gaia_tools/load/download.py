@@ -45,9 +45,24 @@ def galah(dr=1,verbose=True,spider=False):
             ReadMePath,verbose=verbose,spider=spider)
     return None    
     
+def lamost(dr=2,cat='all',verbose=True):
+    filePath= path.lamostPath(dr=dr,cat=cat)
+    if os.path.exists(filePath): return None
+    downloadPath= filePath.replace(
+        filePath,
+        'http://dr2.lamost.org/catdl?name=%s' % os.path.basename(filePath))
+    _download_file(downloadPath+'.gz',filePath+'.gz',verbose=verbose)
+    # gunzip the file
+    try:
+        subprocess.check_call(['gunzip',
+                               filePath+'.gz'])
+    except subprocess.CalledProcessError:
+        raise IOError('gunzipping the LAMOST catalog %s failed ...' % os.path.basename(filePath))
+    return None    
+
 def rave(dr=5,verbose=True):
     filePath, ReadMePath= path.ravePath(dr=dr)
-    #if os.path.exists(filePath): return None
+    if os.path.exists(filePath): return None
     if dr == 4:
         vizier('III/272',filePath,ReadMePath,
                catalogname='ravedr4.dat',readmename='ReadMe')

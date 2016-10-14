@@ -96,6 +96,26 @@ def galah(dr=1):
     data['dec']._fill_value= numpy.array([-9999.99])
     return data
 
+def lamost(dr=2,cat='all'):
+    """
+    NAME:
+       lamost
+    PURPOSE:
+       Load the LAMOST data
+    INPUT:
+       dr= (2) data release
+       cat= ('all') 'all', 'A', 'M', 'star' (see LAMOST docs)
+    OUTPUT:
+       data table
+    HISTORY:
+       2016-10-13 - Written - Bovy (UofT)
+    """
+    filePath= path.lamostPath(dr=dr,cat=cat)
+    if not os.path.exists(filePath):
+        download.lamost(dr=dr,cat=cat)
+    data= fitsio.read(filePath,1)
+    return data
+
 def rave(dr=5):
     """
     NAME:

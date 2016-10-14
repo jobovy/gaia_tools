@@ -16,6 +16,17 @@ def galahPath(dr=1):
     return (os.path.join(_GAIA_TOOLS_DATA,'galah','DR%i' % dr,'catalog.dat'),
             os.path.join(_GAIA_TOOLS_DATA,'galah','DR%i' % dr,'ReadMe'))
 
+def lamostPath(dr=2,cat='all'):
+    if cat.lower() == 'all':
+        filename= 'dr2.fits'
+    elif cat.lower() == 'a':
+        filename= 'dr2_a_stellar.fits'
+    elif cat.lower() == 'm':
+        filename= 'dr2_m_stellar.fits'
+    elif cat.lower() == 'star' or cat.lower() == 'stars':
+        filename= 'dr2_stellar.fits'
+    return os.path.join(_GAIA_TOOLS_DATA,'lamost','DR%i' % dr,filename)
+
 def ravePath(dr=5):
     if dr == 4:
         return (os.path.join(_GAIA_TOOLS_DATA,
