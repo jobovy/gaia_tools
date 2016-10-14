@@ -4,7 +4,8 @@ gaia_tools
 Tools for working with the `ESA/Gaia <http://sci.esa.int/gaia/>`__
 data and related data sets (`APOGEE
 <http://www.sdss.org/surveys/apogee/>`__, `GALAH
-<https://galah-survey.org/>`__, and `RAVE
+<https://galah-survey.org/>`__, `LAMOST DR2
+<http://dr2.lamost.org/>`__, and `RAVE
 <https://www.rave-survey.org/project/>`__).
 
 .. contents::
