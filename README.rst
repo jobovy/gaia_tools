@@ -88,12 +88,27 @@ various APOGEE data files, for example::
 	apogee_cat= gload.apogee()
 	rc_cat= gload.apogeerc()
 
+If you don't have the `apogee <https://github.com/jobovy/apogee>`__
+package installed, the code will still download the data, but less
+options for slicing the catalog are available.
+
 Similarly, you can load the `RAVE
 <https://www.rave-survey.org/project/>`__ and `RAVE-on
 <https://zenodo.org/record/154381#.V-D27pN97ox>`__ data as::
 
 	rave_cat= gload.rave()
 	raveon_cat= gload.raveon()
+
+Last but not least, you can also load the `LAMOST DR2
+<http://dr2.lamost.org/>`__ data as::
+
+	lamost_cat= gload.lamost()
+
+or::
+
+	lamost_star_cat= gload.lamost(cat='star')
+
+for just the stars.
 
 To match catalogs to each other, use the tools in
 ``gaia_tools.xmatch``. For example, to match the GALAH and APOGEE-RC
