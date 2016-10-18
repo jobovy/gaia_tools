@@ -8,6 +8,7 @@ import subprocess
 import numpy
 import astropy.coordinates as acoords
 from astropy import units as u
+
 def xmatch(cat1,cat2,maxdist=2,
            colRA1='RA',colDec1='DEC',epoch1=2000.,
            colRA2='RA',colDec2='DEC',epoch2=2000.,
@@ -24,10 +25,10 @@ def xmatch(cat1,cat2,maxdist=2,
        maxdist= (2) maximum distance in arcsec
        colRA1= ('RA') name of the tag in cat1 with the right ascension in degree in cat1 (assumed to be ICRS)
        colDec1= ('DEC') name of the tag in cat1 with the declination in degree in cat1 (assumed to be ICRS)
-       epoch= (2000.) epoch of the coordinates in cat1
+       epoch1= (2000.) epoch of the coordinates in cat1
        colRA2= ('RA') name of the tag in cat2 with the right ascension in degree in cat2 (assumed to be ICRS)
        colDec2= ('DEC') name of the tag in cat2 with the declination in degree in cat2 (assumed to be ICRS)
-       epoch= (2000.) epoch of the coordinates in cat2
+       epoch2= (2000.) epoch of the coordinates in cat2
        colpmRA2= ('pmra') name of the tag in cat2 with the proper motion in right ascension in degree in cat2 (assumed to be ICRS; includes cos(Dec)) [only used when epochs are different]
        colpmDec2= ('pmdec') name of the tag in cat2 with the proper motion in declination in degree in cat2 (assumed to be ICRS) [only used when epochs are different]
        swap= (False) if False, find closest matches in cat2 for each cat1 source, if False do the opposite (important when one of the catalogs has duplicates)
