@@ -116,7 +116,7 @@ def lamost(dr=2,cat='all'):
     data= fitsio.read(filePath,1)
     return data
 
-def rave(dr=5):
+def rave(dr=5, usecols=None):
     """
     NAME:
        rave
@@ -124,6 +124,7 @@ def rave(dr=5):
        Load the RAVE data
     INPUT:
        dr= (5) data release
+       usecols= (sequence, optional) indices to read from RAVE data
     OUTPUT:
        data table
     HISTORY:
@@ -135,7 +136,10 @@ def rave(dr=5):
     if dr == 4:
         data= astropy.io.ascii.read(filePath,readme=ReadMePath)
     elif dr == 5:
-        data= numpy.genfromtxt(filePath,delimiter=',',names=True)
+        if usecols:
+            data= numpy.genfromtxt(filePath,delimiter=',', names=True, usecols=usecols)
+        else:
+            data= numpy.genfromtxt(filePath,delimiter=',', names=True)
     return data
 
 def raveon(dr=5):
