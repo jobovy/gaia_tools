@@ -92,7 +92,7 @@ def tgas(dr=1,verbose=True):
     filePaths= path.tgasPath(dr=dr)
     for filePath in filePaths:
         if os.path.exists(filePath): continue
-        downloadPath= filePath.replace(path._GAIA_TOOLS_DATA.rstrip('\\'),
+        downloadPath= filePath.replace(path._GAIA_TOOLS_DATA.rstrip('/'),
                                        'http://cdn.gea.esac.esa.int')
         _download_file(downloadPath,filePath,verbose=verbose)
     return None    
