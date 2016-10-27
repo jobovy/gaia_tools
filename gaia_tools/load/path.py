@@ -1,5 +1,12 @@
 import os, os.path
+
 _GAIA_TOOLS_DATA= os.getenv('GAIA_TOOLS_DATA')
+if _GAIA_TOOLS_DATA is None:
+    raise RuntimeError(
+        'Environment variable `GAIA_TOOLS_DATA` is not set. '
+        'This is required to define where the Gaia data are downloaded to.'
+    )
+
 def apogeePath(dr=13):
     if dr == 12:
         return os.path.join(_GAIA_TOOLS_DATA,'apogee','DR%i' % dr,
