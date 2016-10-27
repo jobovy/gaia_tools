@@ -14,7 +14,11 @@ AUTHORS
 ========
 
  * Jo Bovy - bovy at astro dot utoronto dot ca
- * You!
+
+with contributions from
+
+ * Miguel de Val-Borro
+ * Simon Walker
 
 ACKNOWLEDGING USE OF THIS CODE
 ==============================
