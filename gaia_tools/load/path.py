@@ -4,7 +4,9 @@ _GAIA_TOOLS_DATA= os.getenv('GAIA_TOOLS_DATA')
 if _GAIA_TOOLS_DATA is None:
     raise RuntimeError(
         'Environment variable `GAIA_TOOLS_DATA` is not set. '
-        'This is required to define where the Gaia data are downloaded to.'
+        'This is required to define where the Gaia data are downloaded to. '
+        'See the readme: https://github.com/jobovy/gaia_tools#data-files-and-environment-variables '
+        'for more information.'
     )
 
 def apogeePath(dr=13):
