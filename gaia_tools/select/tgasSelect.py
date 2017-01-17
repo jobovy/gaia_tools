@@ -47,6 +47,7 @@ import os, os.path
 import numpy
 import astropy.coordinates as apco
 import healpy
+from galpy.util import bovy_plot
 from matplotlib import cm
 import gaia_tools.load
 _BASE_NSIDE= 2**5
@@ -88,6 +89,7 @@ class tgasSelect(object):
         self._full_tgas= gaia_tools.load.tgas()
         self._full_twomass= gaia_tools.load.twomass(dr='tgas')
         self._full_jk= self._full_twomass['j_mag']-self._full_twomass['k_mag']
+        self._full_jt= jt(self._full_jk,self._full_twomass['j_mag'])
         # Some overall statistics to aid in determining the good sky, setup 
         # related to statistics of 6 < J < 10
         self._setup_skyonly(min_nobs,max_nobs_std,max_plxerr,max_scd,min_lat)
@@ -126,8 +128,7 @@ class tgasSelect(object):
             +(self._scank4_tgas_skyonly > max_scd)
         return None
 
-    def plot_mean_quantity_tgas(self,tag,
-                                func=None,**kwargs):
+    def plot_mean_quantity_tgas(self,tag,func=None,**kwargs):
         """
         NAME:
            plot_mean_quantity_tgas
@@ -162,3 +163,215 @@ class tgasSelect(object):
         mq/= self._nstar_tgas_skyonly
         return mq
         
+    def plot_2mass(self,jmin=None,jmax=None,
+                   jkmin=None,jkmax=None,
+                   cut=False,
+                   **kwargs):
+        """
+        NAME:
+           plot_2mass
+        PURPOSE:
+           Plot star counts in 2MASS
+        INPUT:
+           If the following are not set, fullsky will be plotted:
+              jmin, jmax= minimum and maximum Jt
+              jkmin, jkmax= minimum and maximum J-Ks
+           cut= (False) if True, cut to the 'good' sky
+           +healpy.mollview plotting kwargs
+        OUTPUT:
+           plot to output device
+        HISTORY:
+           2017-01-17 - Written - Bovy (UofT/CCA)
+        """
+        # Select stars
+        if jmin is None or jmax is None \
+                or jkmin is None or jkmax is None:
+            pt= _2mc_skyonly[1]
+        else:
+            pindx= (_2mc[0] > jmin)*(_2mc[0] < jmax)\
+                *(_2mc[1] > jkmin)*(_2mc[1] < jkmax)
+            pt, e= numpy.histogram(_2mc[2][pindx],
+                                   range=[-0.5,_BASE_NPIX-0.5],
+                                   bins=_BASE_NPIX)
+        pt= numpy.log10(pt)
+        if cut: pt[self._exclude_mask_skyonly]= healpy.UNSEEN
+        cmap= cm.viridis
+        cmap.set_under('w')
+        kwargs['unit']= r'$\log_{10}\mathrm{number\ counts}$'
+        kwargs['title']= kwargs.get('title',"")
+        healpy.mollview(pt,nest=True,cmap=cmap,**kwargs)
+        return None
+
+    def plot_tgas(self,jmin=None,jmax=None,
+                  jkmin=None,jkmax=None,
+                  cut=False,
+                  **kwargs):
+        """
+        NAME:
+           plot_tgas
+        PURPOSE:
+           Plot star counts in TGAS
+        INPUT:
+           If the following are not set, fullsky will be plotted:
+              jmin, jmax= minimum and maximum Jt
+              jkmin, jkmax= minimum and maximum J-Ks
+           cut= (False) if True, cut to the 'good' sky
+           +healpy.mollview plotting kwargs
+        OUTPUT:
+           plot to output device
+        HISTORY:
+           2017-01-17 - Written - Bovy (UofT/CCA)
+        """
+        # Select stars
+        if jmin is None or jmax is None \
+                or jkmin is None or jkmax is None:
+            pt= self._nstar_tgas_skyonly
+        else:
+            pindx= (self._full_jt > jmin)*(self._full_jt < jmax)\
+                *(self._full_jk > jkmin)*(self._full_jk < jkmax)
+            pt, e= numpy.histogram((self._full_tgas['source_id']/2**(35.\
+                      +2*(12.-numpy.log2(_BASE_NSIDE)))).astype('int')[pindx],
+                                   range=[-0.5,_BASE_NPIX-0.5],
+                                   bins=_BASE_NPIX)
+        pt= numpy.log10(pt)
+        if cut: pt[self._exclude_mask_skyonly]= healpy.UNSEEN
+        cmap= cm.viridis
+        cmap.set_under('w')
+        kwargs['unit']= r'$\log_{10}\mathrm{number\ counts}$'
+        kwargs['title']= kwargs.get('title',"")
+        healpy.mollview(pt,nest=True,cmap=cmap,**kwargs)
+        return None
+
+    def plot_cmd(self,type='sf',cut=True):
+        """
+        NAME:
+           plot_cmd
+        PURPOSE:
+           Plot the distribution of counts in the color-magnitude diagram
+        INPUT:
+           type= ('sf') Plot 'sf': selection function
+                             'tgas': TGAS counts
+                             '2mass': 2MASS counts
+           cut= (True) cut to the 'good' part of the sky
+        OUTPUT:
+           Plot to output device
+        HISTORY:
+           2017-01-17 - Written - Bovy (UofT/CCA)
+        """
+        jtbins= (numpy.amax(_2mc[0])-numpy.amin(_2mc[0]))/0.1+1
+        nstar2mass, edges= numpy.histogramdd(\
+            _2mc[:3].T,bins=[jtbins,3,_BASE_NPIX],
+            range=[[numpy.amin(_2mc[0])-0.05,numpy.amax(_2mc[0])+0.05],
+                   [-0.05,1.0],[-0.5,_BASE_NPIX-0.5]],weights=_2mc[3])
+        findx= (self._full_jk > -0.05)*(self._full_jk < 1.0)\
+            *(self._full_twomass['j_mag'] < 13.5)
+        nstartgas, edges= numpy.histogramdd(\
+            numpy.array([self._full_jt[findx],self._full_jk[findx],\
+                             (self._full_tgas['source_id'][findx]\
+                                  /2**(35.+2*(12.-numpy.log2(_BASE_NSIDE))))\
+                             .astype('int')]).T,
+            bins=[jtbins,3,_BASE_NPIX],
+            range=[[numpy.amin(_2mc[0])-0.05,numpy.amax(_2mc[0])+0.05],
+                   [-0.05,1.0],[-0.5,_BASE_NPIX-0.5]])
+        if cut:
+            nstar2mass[:,:,self._exclude_mask_skyonly]= numpy.nan
+            nstartgas[:,:,self._exclude_mask_skyonly]= numpy.nan
+        nstar2mass= numpy.nansum(nstar2mass,axis=-1)
+        nstartgas= numpy.nansum(nstartgas,axis=-1)
+        if type == 'sf':
+            pt= nstartgas/nstar2mass
+            vmin= 0.
+            vmax= 1.
+            zlabel=r'$\mathrm{completeness}$'
+        elif type == 'tgas' or type == '2mass':
+            vmin= 0.
+            vmax= 6.
+            zlabel= r'$\log_{10}\mathrm{number\ counts}$'
+            if type == 'tgas':
+                pt= numpy.log10(nstartgas)
+            elif type == '2mass':
+                pt= numpy.log10(nstar2mass)
+        return bovy_plot.bovy_dens2d(pt,origin='lower',
+                                     cmap='viridis',interpolation='nearest',
+                                     colorbar=True,shrink=0.78,
+                                     vmin=vmin,vmax=vmax,zlabel=zlabel,
+                                     yrange=[edges[0][0],edges[0][-1]],
+                                     xrange=[edges[1][0],edges[1][-1]],
+                                     xlabel=r'$J-K_s$',
+                                     ylabel=r'$J+\Delta J$')
+    def plot_magdist(self,type='sf',cut=True,splitcolors=False,overplot=False):
+        """
+        NAME:
+           plot_magdist
+        PURPOSE:
+           Plot the distribution of counts in magnitude
+        INPUT:
+           type= ('sf') Plot 'sf': selection function
+                             'tgas': TGAS counts
+                             '2mass': 2MASS counts
+           cut= (True) cut to the 'good' part of the sky
+           splitcolors= (False) if True, plot the 3 color bins separately
+        OUTPUT:
+           Plot to output device
+        HISTORY:
+           2017-01-17 - Written - Bovy (UofT/CCA)
+        """
+        jtbins= (numpy.amax(_2mc[0])-numpy.amin(_2mc[0]))/0.1+1
+        nstar2mass, edges= numpy.histogramdd(\
+            _2mc[:3].T,bins=[jtbins,3,_BASE_NPIX],
+            range=[[numpy.amin(_2mc[0])-0.05,numpy.amax(_2mc[0])+0.05],
+                   [-0.05,1.0],[-0.5,_BASE_NPIX-0.5]],weights=_2mc[3])
+        findx= (self._full_jk > -0.05)*(self._full_jk < 1.0)\
+            *(self._full_twomass['j_mag'] < 13.5)
+        nstartgas, edges= numpy.histogramdd(\
+            numpy.array([self._full_jt[findx],self._full_jk[findx],\
+                             (self._full_tgas['source_id'][findx]\
+                                  /2**(35.+2*(12.-numpy.log2(_BASE_NSIDE))))\
+                             .astype('int')]).T,
+            bins=[jtbins,3,_BASE_NPIX],
+            range=[[numpy.amin(_2mc[0])-0.05,numpy.amax(_2mc[0])+0.05],
+                   [-0.05,1.0],[-0.5,_BASE_NPIX-0.5]])
+        if cut:
+            nstar2mass[:,:,self._exclude_mask_skyonly]= numpy.nan
+            nstartgas[:,:,self._exclude_mask_skyonly]= numpy.nan
+        nstar2mass= numpy.nansum(nstar2mass,axis=-1)
+        nstartgas= numpy.nansum(nstartgas,axis=-1)
+        exs= 0.5*(numpy.roll(edges[0],1)+edges[0])[1:]
+        for ii in range(3):
+            if type == 'sf':
+                if splitcolors:
+                    pt= nstartgas[:,ii]/nstar2mass[:,ii]
+                else:
+                    pt= numpy.nansum(nstartgas,axis=-1)\
+                        /numpy.nansum(nstar2mass,axis=-1)
+                vmin= 0.
+                vmax= 1.
+                ylabel=r'$\mathrm{completeness}$'
+                semilogy= False
+            elif type == 'tgas' or type == '2mass':
+                vmin= 1.
+                vmax= 10**6.
+                ylabel= r'$\log_{10}\mathrm{number\ counts}$'
+                semilogy= True
+                if type == 'tgas':
+                    if splitcolors:
+                        pt= nstartgas[:,ii]
+                    else:
+                        pt= numpy.nansum(nstartgas,-1)
+                elif type == '2mass':
+                    if splitcolors:
+                        pt= nstar2mass[:,ii]
+                    else:
+                        pt= numpy.nansum(nstar2mass,-1)
+            bovy_plot.bovy_plot(exs,pt,ls='steps-mid',
+                                xrange=[2.,14.],
+                                yrange=[vmin,vmax],
+                                semilogy=semilogy,
+                                xlabel=r'$J+\Delta J$',
+                                ylabel=ylabel,
+                                overplot=(ii>0)+overplot)
+            if not splitcolors: break
+        return None
+
+def jt(jk,j):
+    return j+jk**2.+2.5*jk
