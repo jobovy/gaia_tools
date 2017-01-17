@@ -9,6 +9,10 @@ if _GAIA_TOOLS_DATA is None:
         'for more information.'
     )
 
+def twomassPath(dr='tgas'):
+    return os.path.join(_GAIA_TOOLS_DATA,'Gaia','dstn_match',
+                        'tgas-matched-2mass.fits.gz')
+
 def apogeePath(dr=13):
     if dr == 12:
         return os.path.join(_GAIA_TOOLS_DATA,'apogee','DR%i' % dr,

@@ -10,6 +10,24 @@ try:
 except ImportError:
     _APOGEE_LOADED= False
 from gaia_tools.load import path, download
+def twomass(dr='tgas'):
+    """
+    NAME:
+       twomass
+    PURPOSE:
+       Load the 2MASS data matched to TGAS data
+    INPUT:
+       dr= ('tgas') data release
+    OUTPUT:
+       data table
+    HISTORY:
+       2017-01-17 - Written - Bovy (UofT/CCA)
+    """
+    if not dr.lower() == 'tgas':
+        raise ValueError('Only the 2MASS data matched to TGAS is available currently')
+    filePath= path.twomassPath(dr=dr)
+    return fitsio.read(filePath,1)
+
 def apogee(**kwargs):
     """
     PURPOSE:
