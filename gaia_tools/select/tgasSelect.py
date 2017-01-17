@@ -45,6 +45,7 @@ order by floor(hp12index/16384) ASC;
 ###############################################################################
 import os, os.path
 import numpy
+import astropy.coordinates as apco
 import healpy
 from matplotlib import cm
 import gaia_tools.load
@@ -67,12 +68,11 @@ _2mc[0]/= 10.
 _2mc[1]= _2mc[1]*1.05/3.-0.05
 class tgasSelect(object):
     def __init__(self,
-                 min_nobs= 8.5,
-                 max_nobs_std= 10.,
-                 max_plxerr= 1.01, # Effectively turns this off
-                 max_scd= 0.7,
-                 min_comp= 0.,
-                 min_lat= 20.):
+                 min_nobs=8.5,
+                 max_nobs_std=10.,
+                 max_plxerr=1.01, # Effectively turns this off
+                 max_scd=0.7,
+                 min_lat=20.):
         """
         NAME:
            __init__
@@ -88,7 +88,12 @@ class tgasSelect(object):
         self._full_tgas= gaia_tools.load.tgas()
         self._full_twomass= gaia_tools.load.twomass(dr='tgas')
         self._full_jk= self._full_twomass['j_mag']-self._full_twomass['k_mag']
-        # Some overall statistics
+        # Some overall statistics to aid in determining the good sky, setup 
+        # related to statistics of 6 < J < 10
+        self._setup_skyonly(min_nobs,max_nobs_std,max_plxerr,max_scd,min_lat)
+        return None
+
+    def _setup_skyonly(self,min_nobs,max_nobs_std,max_plxerr,max_scd,min_lat):
         self._tgas_sid= (self._full_tgas['source_id']/2**(35.\
                                +2*(12.-numpy.log2(_BASE_NSIDE)))).astype('int')
         self._tgas_sid_skyonlyindx= (self._full_jk > 0.)\
@@ -98,6 +103,27 @@ class tgasSelect(object):
         nstar, e= numpy.histogram(self._tgas_sid[self._tgas_sid_skyonlyindx],
                                   range=[-0.5,_BASE_NPIX-0.5],bins=_BASE_NPIX)
         self._nstar_tgas_skyonly= nstar
+        self._nobs_tgas_skyonly= self._compute_mean_quantity_tgas(\
+            'astrometric_n_good_obs_al',lambda x: x/9.)
+        self._nobsstd_tgas_skyonly= numpy.sqrt(\
+            self._compute_mean_quantity_tgas(\
+                'astrometric_n_good_obs_al',lambda x: (x/9.)**2.)
+            -self._nobs_tgas_skyonly**2.)
+        self._scank4_tgas_skyonly= self._compute_mean_quantity_tgas(\
+            'scan_direction_strength_k4')
+        self._plxerr_tgas_skyonly= self._compute_mean_quantity_tgas(\
+            'parallax_error')
+        tmp_decs, ras= healpy.pix2ang(_BASE_NSIDE,numpy.arange(_BASE_NPIX),
+                                      nest=True)
+        coos= apco.SkyCoord(ras,numpy.pi/2.-tmp_decs,unit="rad")
+        coos= coos.transform_to(apco.GeocentricTrueEcliptic)
+        self._eclat_skyonly= coos.lat.to('deg').value
+        self._exclude_mask_skyonly= \
+            (self._nobs_tgas_skyonly < min_nobs)\
+            +(self._nobsstd_tgas_skyonly > max_nobs_std)\
+            +(numpy.fabs(self._eclat_skyonly) < min_lat)\
+            +(self._plxerr_tgas_skyonly > max_plxerr)\
+            +(self._scank4_tgas_skyonly > max_scd)
         return None
 
     def plot_mean_quantity_tgas(self,tag,
@@ -116,15 +142,23 @@ class tgasSelect(object):
         HISTORY:
            2017-01-17 - Written - Bovy (UofT/CCA)
         """
-        if func is None: func= lambda x: x
-        mq, e= numpy.histogram(self._tgas_sid[self._tgas_sid_skyonlyindx],
-                               range=[-0.5,_BASE_NPIX-0.5],bins=_BASE_NPIX,
-                               weights=func(self._full_tgas[tag]\
-                                                [self._tgas_sid_skyonlyindx]))
-        mq/= self._nstar_tgas_skyonly
+        mq= self._compute_mean_quantity_tgas(tag,func=func)
         cmap= cm.viridis
         cmap.set_under('w')
         kwargs['unit']= kwargs.get('unit',tag)
         kwargs['title']= kwargs.get('title',"")
         healpy.mollview(mq,nest=True,cmap=cmap,**kwargs)
         return None
+
+    def _compute_mean_quantity_tgas(self,tag,func=None):
+        """Function that computes the mean of a quantity in the TGAS catalog
+        as a function of position on the sky, based on the sample with
+        6 < J < 10 and 0 < J-Ks < 0.8"""
+        if func is None: func= lambda x: x
+        mq, e= numpy.histogram(self._tgas_sid[self._tgas_sid_skyonlyindx],
+                               range=[-0.5,_BASE_NPIX-0.5],bins=_BASE_NPIX,
+                               weights=func(self._full_tgas[tag]\
+                                                [self._tgas_sid_skyonlyindx]))
+        mq/= self._nstar_tgas_skyonly
+        return mq
+        
