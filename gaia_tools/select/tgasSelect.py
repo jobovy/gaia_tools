@@ -190,6 +190,41 @@ class tgasSelect(object):
         self._sf_props= sf_props
         return None
 
+    def __call__(self,j,jk,ra,dec):
+        """
+        NAME:
+           __call__
+        PURPOSE:
+           Evaluate the selection function for multiple (J,J-Ks) 
+           and single (RA,Dec)
+        INPUT:
+           j - apparent J magnitude
+           jk - J-Ks color
+           ra, dec - sky coordinates (deg)
+        OUTPUT
+           selection fraction
+        HISTORY:
+           2017-01-18 - Written - Bovy (UofT/CCA)
+        """
+        # Parse j, jk
+        if isinstance(j,float):
+            j= numpy.array([j])
+        if isinstance(jk,float):
+            jk= numpy.array([jk])
+        # Parse RA, Dec
+        theta= numpy.pi/180.*(90.-dec)
+        phi= numpy.pi/180.*ra
+        pix= healpy.ang2pix(_BASE_NSIDE,theta,phi,nest=True)
+        if self._exclude_mask_skyonly[pix]:
+            return numpy.zeros_like(j)
+        jkbin= numpy.floor((jk+0.05)/1.05*3.).astype('int')
+        tjt= jt(jk,j)
+        out= numpy.zeros_like(j)
+        for ii in range(3):
+            out[jkbin == ii]= self._sf_splines[ii](tjt[jkbin == ii])
+        out[out < 0.]= 0.
+        return out
+
     def plot_mean_quantity_tgas(self,tag,func=None,**kwargs):
         """
         NAME:
