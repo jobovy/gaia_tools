@@ -80,13 +80,25 @@ class tgasSelect(object):
                  max_nobs_std=10.,
                  max_plxerr=1.01, # Effectively turns this off
                  max_scd=0.7,
-                 min_lat=20.):
+                 min_lat=20.,
+                 jmin=2.,jmax=13.5,jkmin=-0.05,jkmax=1.0):
         """
         NAME:
            __init__
         PURPOSE:
            Initialize the TGAS selection function
         INPUT:
+           Parameters for determining the 'good' part of the sky (applied at the 2^5 nside pixel level):
+              min_nobs= (8.5) minimum mean number of observations
+              max_nobs_std= (10) maximum spread in the number of observations
+              max_plerr= (1.01) maximum mean parallax uncertainty (default: off)
+              max_scd= (0.7) maximum mean scan_direction_strength_k4
+              min_lat= (20.) minimum |ecliptic latitude| in degree
+           Parameters determining the edges of the color-magnitude considered (don't touch these unless you know what you are doing):
+              jmin= (2.) Minimum J-band magnitude to consider
+              jmax= (13.5) Maximum J-band magnitude to consider
+              jkmin (-0.05) Minimum J-K_s color to consider
+              jkmax= (1.0) Maximum J-K_s color to consider
         OUTPUT:
            TGAS-selection-function object
         HISTORY:
@@ -100,7 +112,7 @@ class tgasSelect(object):
         # Some overall statistics to aid in determining the good sky, setup 
         # related to statistics of 6 < J < 10
         self._setup_skyonly(min_nobs,max_nobs_std,max_plxerr,max_scd,min_lat)
-        self._determine_selection()
+        self._determine_selection(jmin,jmax,jkmin,jkmax)
         return None
 
     def _setup_skyonly(self,min_nobs,max_nobs_std,max_plxerr,max_scd,min_lat):
@@ -136,16 +148,20 @@ class tgasSelect(object):
             +(self._scank4_tgas_skyonly > max_scd)
         return None
 
-    def _determine_selection(self):
+    def _determine_selection(self,jmin,jmax,jkmin,jkmax):
         """Determine the Jt dependence of the selection function in the 'good'
         part of the sky"""
+        self._jmin= jmin
+        self._jmax= jmax
+        self._jkmin= jkmin
+        self._jkmax= jkmax
         jtbins= (numpy.amax(_2mc[0])-numpy.amin(_2mc[0]))/0.1+1
         nstar2mass, edges= numpy.histogramdd(\
             _2mc[:3].T,bins=[jtbins,3,_BASE_NPIX],
             range=[[numpy.amin(_2mc[0])-0.05,numpy.amax(_2mc[0])+0.05],
-                   [-0.05,1.0],[-0.5,_BASE_NPIX-0.5]],weights=_2mc[3])
-        findx= (self._full_jk > -0.05)*(self._full_jk < 1.0)\
-            *(self._full_twomass['j_mag'] < 13.5)
+                   [jkmin,jkmax],[-0.5,_BASE_NPIX-0.5]],weights=_2mc[3])
+        findx= (self._full_jk > jkmin)*(self._full_jk < jkmax)\
+            *(self._full_twomass['j_mag'] < jmax)
         nstartgas, edges= numpy.histogramdd(\
             numpy.array([self._full_jt[findx],self._full_jk[findx],\
                              (self._full_tgas['source_id'][findx]\
@@ -153,7 +169,7 @@ class tgasSelect(object):
                              .astype('int')]).T,
             bins=[jtbins,3,_BASE_NPIX],
             range=[[numpy.amin(_2mc[0])-0.05,numpy.amax(_2mc[0])+0.05],
-                   [-0.05,1.0],[-0.5,_BASE_NPIX-0.5]])
+                   [jkmin,jkmax],[-0.5,_BASE_NPIX-0.5]])
         # Only 'good' part of the sky
         nstar2mass[:,:,self._exclude_mask_skyonly]= numpy.nan
         nstartgas[:,:,self._exclude_mask_skyonly]= numpy.nan
@@ -223,13 +239,41 @@ class tgasSelect(object):
         pix= healpy.ang2pix(_BASE_NSIDE,theta,phi,nest=True)
         if self._exclude_mask_skyonly[pix]:
             return numpy.zeros_like(j)
-        jkbin= numpy.floor((jk+0.05)/1.05*3.).astype('int')
+        jkbin= numpy.floor((jk-self._jkmin)\
+                               /(self._jkmax-self._jkmin)*3.).astype('int')
         tjt= jt(jk,j)
         out= numpy.zeros_like(j)
         for ii in range(3):
             out[jkbin == ii]= self._sf_splines[ii](tjt[jkbin == ii])
         out[out < 0.]= 0.
+        out[(j < self._jmin)+(j > self._jmax)]= 0.
         return out
+
+    def determine_statistical(self,data,j,k):
+        """
+        NAME:
+           determine_statistical
+        PURPOSE:
+           Determine the subsample that is part of the statistical sample
+           described by this selection function object
+        INPUT:
+           data - a TGAS subsample (e.g., F stars)
+           j - J magnitudes for data
+           k - K_s magnitudes for data
+        OUTPUT:
+           index array into data that has True for members of the 
+           statistical sample
+        HISTORY:
+           2017-01-18 - Written - Bovy (UofT/CCA)
+        """
+        # Sky cut
+        data_sid= (data['source_id']\
+                       /2**(35.+2*(12.-numpy.log2(_BASE_NSIDE)))).astype('int')
+        skyindx= True-self._exclude_mask_skyonly[data_sid]
+        # Color, magnitude cuts
+        cmagindx= (j >= self._jmin)*(j <= self._jmax)\
+            *(j-k >= self._jkmin)*(j-k <= self._jkmax)
+        return skyindx*cmagindx
 
     def plot_mean_quantity_tgas(self,tag,func=None,**kwargs):
         """
