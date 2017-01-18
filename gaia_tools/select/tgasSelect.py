@@ -48,9 +48,15 @@ import numpy
 from scipy import interpolate
 import astropy.coordinates as apco
 import healpy
-from galpy.util import bovy_plot
+from galpy.util import bovy_plot, bovy_coords
 from matplotlib import cm
 import gaia_tools.load
+try:
+    import mwdust
+except ImportError:
+    _MWDUSTLOADED= False
+else:
+    _MWDUSTLOADED= True
 _BASE_NSIDE= 2**5
 _BASE_NPIX= healpy.nside2npix(_BASE_NSIDE)
 _SFFILES_DIR= os.path.dirname(os.path.realpath(__file__))
@@ -469,6 +475,95 @@ class tgasSelect(object):
                                 overplot=(ii>0)+overplot)
             if not splitcolors: break
         return None
+
+class tgasEffectiveSelect(object):
+    def __init__(self,tgasSel,MJ=1.8,JK=0.25,dmap3d=None):
+        """
+        NAME:
+           __init__
+        PURPOSE:
+           Initialize the effective TGAS selection function for a population of stars
+        INPUT:
+           tgasSel - a tgasSelect object with the TGAS selection function
+           MJ= (1.8) absolute magnitude in J or an array of samples of absolute magnitudes in J for the tracer population
+           JK= (0.25) J-Ks color or an array of samples of the J-Ks color
+           dmap3d= if given, a mwdust.Dustmap3D object that returns the J-band extinction in 3D; if not set use the Green15 Pan-STARRS map
+        OUTPUT:
+           TGAS-effective-selection-function object
+        HISTORY:
+           2017-01-18 - Started - Bovy (UofT/CCA)
+        """
+        self._tgasSel= tgasSel
+        # Parse MJ
+        if isinstance(MJ,(int,float)):
+            self._MJ= numpy.array([MJ])
+        elif isinstance(MJ,list):
+            self._MJ= numpy.array(MJ)
+        else:
+            self._MJ= MJ
+        # Parse JK
+        if isinstance(JK,(int,float)):
+            self._JK= numpy.array([JK])
+        elif isinstance(JK,list):
+            self._JK= numpy.array(JK)
+        else:
+            self._JK= JK
+        # Parse dust map
+        if dmap3d is None:
+            if not _MWDUSTLOADED:
+                raise ImportError("mwdust module not installed, required for extinction tools; download and install from http://github.com/jobovy/mwdust")
+            dmap3d= mwdust.Green15(filter='2MASS J')
+        self._dmap3d= dmap3d
+        return None
+
+    def __call__(self,dist,ra,dec,MJ=None,JK=None):
+        """
+        NAME:
+           __call__
+        PURPOSE:
+           Evaluate the effective selection function
+        INPUT:
+           distance - distance in kpc (can be array)
+           ra, dec - sky coordinates (deg), scalars
+           MJ= (object-wide default) absolute magnitude in J or an array of samples of absolute  magnitudes in J for the tracer population
+           JK= (object-wide default) J-Ks color or an array of samples of the J-Ks color 
+        OUTPUT
+           effective selection fraction
+        HISTORY:
+           2017-01-18 - Written - Bovy (UofT/CCA)
+        """
+        if isinstance(dist,(int,float)):
+            dist= numpy.array([dist])
+        elif isinstance(dist,list):
+            dist= numpy.array(dist)
+        if MJ is None: MJ= self._MJ
+        if JK is None: JK= self._JK
+        # Parse MJ
+        if isinstance(MJ,(int,float)):
+            MJ= numpy.array([MJ])
+        elif isinstance(MJ,list):
+            MJ= numpy.array(MJ)
+        # Parse JK
+        if isinstance(JK,(int,float)):
+            JK= numpy.array([JK])
+        elif isinstance(JK,list):
+            JK= numpy.array(JK)
+        distmod= 5.*numpy.log10(dist)+10.
+        # Extract the distribution of A_J and A_J-A_Ks at this distance 
+        # from the dust map, use twice the radius of a pixel for this
+        lcen, bcen= bovy_coords.radec_to_lb(ra,dec,degree=True)
+        pixarea, aj= self._dmap3d.dust_vals_disk(\
+            lcen,bcen,dist,healpy.nside2resol(_BASE_NSIDE)/numpy.pi*180.)
+        totarea= numpy.sum(pixarea)
+        ejk= aj*(1.-1./2.5) # Assume AJ/AK = 2.5
+        distmod= numpy.tile(distmod,(aj.shape[0],1))
+        pixarea= numpy.tile(pixarea,(len(dist),1)).T
+        out= numpy.zeros_like(dist)
+        for mj,jk in zip(MJ,JK):
+            tj= mj+distmod+aj
+            tjk= jk+ejk
+            out+= numpy.sum(pixarea*self._tgasSel(tj,tjk,ra,dec),axis=0)
+        return out/totarea/len(MJ)
 
 def jt(jk,j):
     return j+jk**2.+2.5*jk
