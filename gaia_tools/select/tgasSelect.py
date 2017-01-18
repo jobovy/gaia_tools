@@ -44,6 +44,7 @@ order by floor(hp12index/16384) ASC;
 # and saved in 2massc_hp5.txt
 ###############################################################################
 import os, os.path
+import tqdm
 import numpy
 from scipy import interpolate
 import astropy.coordinates as apco
@@ -608,6 +609,65 @@ class tgasEffectiveSelect(object):
             tjk= jk+ejk
             out+= numpy.sum(pixarea*self._tgasSel(tj,tjk,ra,dec),axis=0)
         return out/totarea/len(MJ)
+
+    def volume(self,vol_func,xyz=False,MJ=None,JK=None):
+        """
+        NAME:
+           volume
+        PURPOSE:
+           Compute the effective volume of a spatial volume under this effective selection function
+        INPUT:
+           vol_func - function of 
+                         (a) (ra/deg,dec/deg,dist/kpc)
+                         (b) heliocentric Galactic X,Y,Z if xyz
+                      that returns 1. inside the spatial volume under consideration and 0. outside of it, should be able to take array input for dist (or X,Y,Z)
+           xyz= (False) if True, vol_func is a function of X,Y,Z (see above)
+           MJ= (object-wide default) absolute magnitude in J or an array of samples of absolute  magnitudes in J for the tracer population
+           JK= (object-wide default) J-Ks color or an array of samples of the J-Ks color 
+        OUTPUT
+           effective volume
+        HISTORY:
+           2017-01-18 - Written - Bovy (UofT/CCA)
+        """
+        if not hasattr(self,'_ra_cen_4vol'):
+            theta,phi= healpy.pix2ang(\
+                _BASE_NSIDE,numpy.arange(_BASE_NPIX)\
+                    [True-self._tgasSel._exclude_mask_skyonly],nest=True)
+            self._ra_cen_4vol= 180./numpy.pi*phi
+            self._dec_cen_4vol= 90.-180./numpy.pi*theta
+            dms= numpy.linspace(0.,18.,101)
+            self._deltadm_4vol= dms[1]-dms[0]
+            self._dists_4vol= 10.**(0.2*dms-2.)
+            lb= bovy_coords.radec_to_lb(phi,numpy.pi/2.-theta)
+            l= numpy.tile(lb[:,0],(len(self._dists_4vol),1)).T.flatten()
+            b= numpy.tile(lb[:,1],(len(self._dists_4vol),1)).T.flatten()
+            XYZ_4vol= \
+                bovy_coords.lbd_to_XYZ(l,b,
+                   numpy.tile(self._dists_4vol,
+                              (len(self._ra_cen_4vol),1)).flatten())
+            self._X_4vol= numpy.reshape(XYZ_4vol[:,0],(len(self._ra_cen_4vol),
+                                                       len(self._dists_4vol)))
+            self._Y_4vol= numpy.reshape(XYZ_4vol[:,1],(len(self._ra_cen_4vol),
+                                                       len(self._dists_4vol)))
+            self._Z_4vol= numpy.reshape(XYZ_4vol[:,2],(len(self._ra_cen_4vol),
+                                                       len(self._dists_4vol)))
+        out= 0.
+        if xyz:
+            for ra_cen, dec_cen, x,y,z \
+                    in tqdm.tqdm(zip(self._ra_cen_4vol,self._dec_cen_4vol,
+                                     self._X_4vol,self._Y_4vol,self._Z_4vol)):
+                out+= \
+                   numpy.sum(self(self._dists_4vol,ra_cen,dec_cen,MJ=MJ,JK=JK)\
+                             *vol_func(x,y,z)*self._dists_4vol**3.)
+        else:
+            for ra_cen, dec_cen in \
+                    tqdm.tqdm(zip(self._ra_cen_4vol,self._dec_cen_4vol)):
+                out+= \
+                   numpy.sum(self(self._dists_4vol,ra_cen,dec_cen,MJ=MJ,JK=JK)\
+                             *vol_func(ra_cen,dec_cen,self._dists_4vol)\
+                             *self._dists_4vol**3.)
+        return out*numpy.log(10.)/5.\
+            *healpy.nside2pixarea(_BASE_NSIDE)*self._deltadm_4vol
 
 def jt(jk,j):
     return j+jk**2.+2.5*jk
