@@ -19,7 +19,7 @@ where (twomass_psc.pts_key = twomass_psc_hp12.pts_key \
 AND (ph_qual like 'A__' OR (rd_flg like '1__' OR rd_flg like '3__')) \
 AND (ph_qual like '__A' OR (rd_flg like '__1' OR rd_flg like '__3')) \
 AND use_src='1' AND ext_key is null \
-AND (j_m-k_m) > -0.05 AND (j_m-k_m) < 1.0 AND j_m < 13.5 AND j_m > 4) \
+AND (j_m-k_m) > -0.05 AND (j_m-k_m) < 1.0 AND j_m < 13.5 AND j_m > 2) \
 group by floor((j_m+(j_m-k_m)*(j_m-k_m)+2.5*(j_m-k_m))*10), \
 floor((j_m-k_m+0.05)/1.05*3),floor(hp12index/16384) \
 order by floor((j_m+(j_m-k_m)*(j_m-k_m)+2.5*(j_m-k_m))*10) ASC;
@@ -45,6 +45,7 @@ order by floor(hp12index/16384) ASC;
 ###############################################################################
 import os, os.path
 import numpy
+from scipy import interpolate
 import astropy.coordinates as apco
 import healpy
 from galpy.util import bovy_plot
@@ -93,6 +94,7 @@ class tgasSelect(object):
         # Some overall statistics to aid in determining the good sky, setup 
         # related to statistics of 6 < J < 10
         self._setup_skyonly(min_nobs,max_nobs_std,max_plxerr,max_scd,min_lat)
+        self._determine_selection()
         return None
 
     def _setup_skyonly(self,min_nobs,max_nobs_std,max_plxerr,max_scd,min_lat):
@@ -126,6 +128,66 @@ class tgasSelect(object):
             +(numpy.fabs(self._eclat_skyonly) < min_lat)\
             +(self._plxerr_tgas_skyonly > max_plxerr)\
             +(self._scank4_tgas_skyonly > max_scd)
+        return None
+
+    def _determine_selection(self):
+        """Determine the Jt dependence of the selection function in the 'good'
+        part of the sky"""
+        jtbins= (numpy.amax(_2mc[0])-numpy.amin(_2mc[0]))/0.1+1
+        nstar2mass, edges= numpy.histogramdd(\
+            _2mc[:3].T,bins=[jtbins,3,_BASE_NPIX],
+            range=[[numpy.amin(_2mc[0])-0.05,numpy.amax(_2mc[0])+0.05],
+                   [-0.05,1.0],[-0.5,_BASE_NPIX-0.5]],weights=_2mc[3])
+        findx= (self._full_jk > -0.05)*(self._full_jk < 1.0)\
+            *(self._full_twomass['j_mag'] < 13.5)
+        nstartgas, edges= numpy.histogramdd(\
+            numpy.array([self._full_jt[findx],self._full_jk[findx],\
+                             (self._full_tgas['source_id'][findx]\
+                                  /2**(35.+2*(12.-numpy.log2(_BASE_NSIDE))))\
+                             .astype('int')]).T,
+            bins=[jtbins,3,_BASE_NPIX],
+            range=[[numpy.amin(_2mc[0])-0.05,numpy.amax(_2mc[0])+0.05],
+                   [-0.05,1.0],[-0.5,_BASE_NPIX-0.5]])
+        # Only 'good' part of the sky
+        nstar2mass[:,:,self._exclude_mask_skyonly]= numpy.nan
+        nstartgas[:,:,self._exclude_mask_skyonly]= numpy.nan
+        nstar2mass= numpy.nansum(nstar2mass,axis=-1)
+        nstartgas= numpy.nansum(nstartgas,axis=-1)
+        exs= 0.5*(numpy.roll(edges[0],1)+edges[0])[1:]
+        # Three bins separate
+        sf_splines= []
+        sf_props= numpy.zeros((3,3))
+        for ii in range(3):
+            # Determine the plateau, out of interest
+            level_indx= (exs > 8.5)*(exs < 9.5)
+            sf_props[ii,0]=\
+                numpy.nanmedian((nstartgas/nstar2mass)[level_indx,ii])
+            # Spline interpolate
+            spl_indx= (exs > 4.25)*(exs < 13.5)\
+                *(True-numpy.isnan((nstartgas/nstar2mass)[:,ii]))
+            tsf_spline= interpolate.UnivariateSpline(\
+                exs[spl_indx],(nstartgas/nstar2mass)[spl_indx,ii],
+                w=1./((numpy.sqrt(nstartgas)/nstar2mass)[spl_indx,ii]+0.02),
+                k=3,ext=1,s=numpy.sum(spl_indx)/4.)
+            # Determine where the sf hits 50% completeness 
+            # at the bright and faint end
+            bindx= spl_indx*(exs < 9.)
+            xs= numpy.linspace(numpy.amin(exs[bindx]),numpy.amax(exs[bindx]),
+                               1001)
+            sf_props[ii,1]=\
+                interpolate.InterpolatedUnivariateSpline(tsf_spline(xs),
+                                                         xs,k=1)(0.5)
+            # Faint
+            findx= spl_indx*(exs > 9.)\
+                *((nstartgas/nstar2mass)[:,ii]*sf_props[ii,0] < 0.8)
+            xs= numpy.linspace(numpy.amin(exs[findx]),numpy.amax(exs[findx]),
+                               1001)
+            sf_props[ii,2]=\
+                interpolate.InterpolatedUnivariateSpline(tsf_spline(xs)[::-1],
+                                                         xs[::-1],k=1)(0.5)
+            sf_splines.append(tsf_spline)
+        self._sf_splines= sf_splines
+        self._sf_props= sf_props
         return None
 
     def plot_mean_quantity_tgas(self,tag,func=None,**kwargs):
