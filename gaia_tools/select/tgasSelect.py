@@ -599,7 +599,7 @@ class tgasEffectiveSelect(object):
             out+= numpy.sum(pixarea*self._tgasSel(tj,tjk,ra,dec),axis=0)
         return out/totarea/len(MJ)
 
-    def volume(self,vol_func,xyz=False,MJ=None,JK=None):
+    def volume(self,vol_func,xyz=False,MJ=None,JK=None,ndists=101):
         """
         NAME:
            volume
@@ -613,19 +613,21 @@ class tgasEffectiveSelect(object):
            xyz= (False) if True, vol_func is a function of X,Y,Z (see above)
            MJ= (object-wide default) absolute magnitude in J or an array of samples of absolute  magnitudes in J for the tracer population
            JK= (object-wide default) J-Ks color or an array of samples of the J-Ks color 
+           ndists= (101) number of distances to use in the distance integration
         OUTPUT
            effective volume
         HISTORY:
            2017-01-18 - Written - Bovy (UofT/CCA)
-        """
-        # Pre-compute coordinates for integrand evaluation
-        if not hasattr(self,'_ra_cen_4vol'):
+        """           
+        # Pre-compute coordinates for integrand evaluation            
+        if not hasattr(self,'_ra_cen_4vol') or \
+                (hasattr(self,'_ndists_4vol') and ndists != self._ndists_4vol):
             theta,phi= healpy.pix2ang(\
                 _BASE_NSIDE,numpy.arange(_BASE_NPIX)\
                     [True-self._tgasSel._exclude_mask_skyonly],nest=True)
             self._ra_cen_4vol= 180./numpy.pi*phi
             self._dec_cen_4vol= 90.-180./numpy.pi*theta
-            dms= numpy.linspace(0.,18.,101)
+            dms= numpy.linspace(0.,18.,ndists)
             self._deltadm_4vol= dms[1]-dms[0]
             self._dists_4vol= 10.**(0.2*dms-2.)
             self._tiled_dists3_4vol= numpy.tile(self._dists_4vol**3.,
@@ -650,7 +652,8 @@ class tgasEffectiveSelect(object):
         # Cache effective-selection function
         MJ, JK= self._parse_mj_jk(MJ,JK)
         new_hash= hashlib.md5(numpy.array([MJ,JK])).hexdigest()
-        if not hasattr(self,'_vol_MJ_hash') or new_hash != self._vol_MJ_hash:
+        if not hasattr(self,'_vol_MJ_hash') or new_hash != self._vol_MJ_hash \
+             or (hasattr(self,'_ndists_4vol') and ndists != self._ndists_4vol):
             # Need to update the effective-selection function
             effsel_4vol= self(self._dists_4vol,
                               self._ra_cen_4vol[0],
@@ -658,6 +661,7 @@ class tgasEffectiveSelect(object):
             self._effsel_4vol= numpy.tile(effsel_4vol,
                                           (len(self._ra_cen_4vol),1))
             self._vol_MJ_hash= new_hash
+            self._ndists_4vol= ndists
         out= 0.
         if xyz:
             out= numpy.sum(\
