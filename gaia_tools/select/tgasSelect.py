@@ -44,7 +44,7 @@ order by floor(hp12index/16384) ASC;
 # and saved in 2massc_hp5.txt
 ###############################################################################
 import os, os.path
-import tqdm
+import hashlib
 import numpy
 from scipy import interpolate
 import astropy.coordinates as apco
@@ -581,18 +581,7 @@ class tgasEffectiveSelect(object):
             dist= numpy.array([dist])
         elif isinstance(dist,list):
             dist= numpy.array(dist)
-        if MJ is None: MJ= self._MJ
-        if JK is None: JK= self._JK
-        # Parse MJ
-        if isinstance(MJ,(int,float)):
-            MJ= numpy.array([MJ])
-        elif isinstance(MJ,list):
-            MJ= numpy.array(MJ)
-        # Parse JK
-        if isinstance(JK,(int,float)):
-            JK= numpy.array([JK])
-        elif isinstance(JK,list):
-            JK= numpy.array(JK)
+        MJ, JK= self._parse_mj_jk(MJ,JK)
         distmod= 5.*numpy.log10(dist)+10.
         # Extract the distribution of A_J and A_J-A_Ks at this distance 
         # from the dust map, use twice the radius of a pixel for this
@@ -620,7 +609,7 @@ class tgasEffectiveSelect(object):
            vol_func - function of 
                          (a) (ra/deg,dec/deg,dist/kpc)
                          (b) heliocentric Galactic X,Y,Z if xyz
-                      that returns 1. inside the spatial volume under consideration and 0. outside of it, should be able to take array input for dist (or X,Y,Z)
+                      that returns 1. inside the spatial volume under consideration and 0. outside of it, should be able to take array input of a certain shape and return an array with the same shape
            xyz= (False) if True, vol_func is a function of X,Y,Z (see above)
            MJ= (object-wide default) absolute magnitude in J or an array of samples of absolute  magnitudes in J for the tracer population
            JK= (object-wide default) J-Ks color or an array of samples of the J-Ks color 
@@ -629,6 +618,7 @@ class tgasEffectiveSelect(object):
         HISTORY:
            2017-01-18 - Written - Bovy (UofT/CCA)
         """
+        # Pre-compute coordinates for integrand evaluation
         if not hasattr(self,'_ra_cen_4vol'):
             theta,phi= healpy.pix2ang(\
                 _BASE_NSIDE,numpy.arange(_BASE_NPIX)\
@@ -638,6 +628,12 @@ class tgasEffectiveSelect(object):
             dms= numpy.linspace(0.,18.,101)
             self._deltadm_4vol= dms[1]-dms[0]
             self._dists_4vol= 10.**(0.2*dms-2.)
+            self._tiled_dists3_4vol= numpy.tile(self._dists_4vol**3.,
+                                                (len(self._ra_cen_4vol),1))
+            self._tiled_ra_cen_4vol= numpy.tile(self._ra_cen_4vol,
+                                                 (len(self._dists_4vol),1)).T
+            self._tiled_dec_cen_4vol= numpy.tile(self._dec_cen_4vol,
+                                                 (len(self._dists_4vol),1)).T
             lb= bovy_coords.radec_to_lb(phi,numpy.pi/2.-theta)
             l= numpy.tile(lb[:,0],(len(self._dists_4vol),1)).T.flatten()
             b= numpy.tile(lb[:,1],(len(self._dists_4vol),1)).T.flatten()
@@ -651,23 +647,46 @@ class tgasEffectiveSelect(object):
                                                        len(self._dists_4vol)))
             self._Z_4vol= numpy.reshape(XYZ_4vol[:,2],(len(self._ra_cen_4vol),
                                                        len(self._dists_4vol)))
+        # Cache effective-selection function
+        MJ, JK= self._parse_mj_jk(MJ,JK)
+        new_hash= hashlib.md5(numpy.array([MJ,JK])).hexdigest()
+        if not hasattr(self,'_vol_MJ_hash') or new_hash != self._vol_MJ_hash:
+            # Need to update the effective-selection function
+            effsel_4vol= self(self._dists_4vol,
+                              self._ra_cen_4vol[0],
+                              self._dec_cen_4vol[0],MJ=MJ,JK=JK)
+            self._effsel_4vol= numpy.tile(effsel_4vol,
+                                          (len(self._ra_cen_4vol),1))
+            self._vol_MJ_hash= new_hash
         out= 0.
         if xyz:
-            for ra_cen, dec_cen, x,y,z \
-                    in tqdm.tqdm(zip(self._ra_cen_4vol,self._dec_cen_4vol,
-                                     self._X_4vol,self._Y_4vol,self._Z_4vol)):
-                out+= \
-                   numpy.sum(self(self._dists_4vol,ra_cen,dec_cen,MJ=MJ,JK=JK)\
-                             *vol_func(x,y,z)*self._dists_4vol**3.)
+            out= numpy.sum(\
+                self._effsel_4vol\
+                    *vol_func(self._X_4vol,self._Y_4vol,self._Z_4vol)\
+                    *self._tiled_dists3_4vol)
         else:
-            for ra_cen, dec_cen in \
-                    tqdm.tqdm(zip(self._ra_cen_4vol,self._dec_cen_4vol)):
-                out+= \
-                   numpy.sum(self(self._dists_4vol,ra_cen,dec_cen,MJ=MJ,JK=JK)\
-                             *vol_func(ra_cen,dec_cen,self._dists_4vol)\
-                             *self._dists_4vol**3.)
+            out= numpy.sum(\
+                self._effsel_4vol\
+                    *vol_func(self._ra_cen_4vol,self._dec_cen_4vol,
+                              self._dists_4vol)\
+                    *self._tiled_dists3_4vol)
         return out*numpy.log(10.)/5.\
             *healpy.nside2pixarea(_BASE_NSIDE)*self._deltadm_4vol
+
+    def _parse_mj_jk(self,MJ,JK):
+        if MJ is None: MJ= self._MJ
+        if JK is None: JK= self._JK
+        # Parse MJ
+        if isinstance(MJ,(int,float)):
+            MJ= numpy.array([MJ])
+        elif isinstance(MJ,list):
+            MJ= numpy.array(MJ)
+        # Parse JK
+        if isinstance(JK,(int,float)):
+            JK= numpy.array([JK])
+        elif isinstance(JK,list):
+            JK= numpy.array(JK)
+        return (MJ,JK)
 
 def jt(jk,j):
     return j+jk**2.+2.5*jk
