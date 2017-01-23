@@ -45,11 +45,12 @@ order by floor(hp12index/16384) ASC;
 ###############################################################################
 import os, os.path
 import hashlib
+import tqdm
 import numpy
 from scipy import interpolate
 import astropy.coordinates as apco
 import healpy
-from galpy.util import bovy_plot, bovy_coords
+from galpy.util import bovy_plot, bovy_coords, multi
 from matplotlib import cm
 import gaia_tools.load
 try:
@@ -599,7 +600,8 @@ class tgasEffectiveSelect(object):
             out+= numpy.sum(pixarea*self._tgasSel(tj,tjk,ra,dec),axis=0)
         return out/totarea/len(MJ)
 
-    def volume(self,vol_func,xyz=False,MJ=None,JK=None,ndists=101):
+    def volume(self,vol_func,xyz=False,MJ=None,JK=None,ndists=101,
+               ncpu=None):
         """
         NAME:
            volume
@@ -614,6 +616,7 @@ class tgasEffectiveSelect(object):
            MJ= (object-wide default) absolute magnitude in J or an array of samples of absolute  magnitudes in J for the tracer population
            JK= (object-wide default) J-Ks color or an array of samples of the J-Ks color 
            ndists= (101) number of distances to use in the distance integration
+           ncpu= (None) if set to an integer, use this many CPUs to compute the effective selection function (only for non-zero extinction)
         OUTPUT
            effective volume
         HISTORY:
@@ -655,11 +658,30 @@ class tgasEffectiveSelect(object):
         if not hasattr(self,'_vol_MJ_hash') or new_hash != self._vol_MJ_hash \
              or (hasattr(self,'_ndists_4vol') and ndists != self._ndists_4vol):
             # Need to update the effective-selection function
-            effsel_4vol= self(self._dists_4vol,
-                              self._ra_cen_4vol[0],
-                              self._dec_cen_4vol[0],MJ=MJ,JK=JK)
-            self._effsel_4vol= numpy.tile(effsel_4vol,
-                                          (len(self._ra_cen_4vol),1))
+            if isinstance(self._dmap3d,mwdust.Zero): #easy bc same everywhere
+                effsel_4vol= self(self._dists_4vol,
+                                  self._ra_cen_4vol[0],
+                                  self._dec_cen_4vol[0],MJ=MJ,JK=JK)
+                self._effsel_4vol= numpy.tile(effsel_4vol,
+                                              (len(self._ra_cen_4vol),1))
+            else: # Need to treat each los separately
+                if multi is None:
+                    self._effsel_4vol= numpy.empty((len(self._ra_cen_4vol),
+                                                    len(self._dists_4vol)))
+                    for ii,(ra_cen, dec_cen) \
+                            in enumerate(tqdm.tqdm(zip(self._ra_cen_4vol,
+                                                       self._dec_cen_4vol))):
+                        self._effsel_4vol[ii]= self(self._dists_4vol,
+                                                    ra_cen,dec_cen,MJ=MJ,JK=JK)
+                else:
+                    multiOut= multi.parallel_map(\
+                        lambda x: self(self._dists_4vol,
+                                       self._ra_cen_4vol[x],
+                                       self._dec_cen_4vol[x],MJ=MJ,JK=JK),
+                        len(self._ra_cen_4vol),
+                        numcores=ncpu)
+                    self._effsel_4vol= numpy.array(multiOut)
+                    print(self._effsel_4vol.shape)
             self._vol_MJ_hash= new_hash
             self._ndists_4vol= ndists
         out= 0.
