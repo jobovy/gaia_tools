@@ -678,10 +678,9 @@ class tgasEffectiveSelect(object):
                         lambda x: self(self._dists_4vol,
                                        self._ra_cen_4vol[x],
                                        self._dec_cen_4vol[x],MJ=MJ,JK=JK),
-                        len(self._ra_cen_4vol),
+                        range(len(self._ra_cen_4vol)),
                         numcores=ncpu)
                     self._effsel_4vol= numpy.array(multiOut)
-                    print(self._effsel_4vol.shape)
             self._vol_MJ_hash= new_hash
             self._ndists_4vol= ndists
         out= 0.
