@@ -665,7 +665,7 @@ class tgasEffectiveSelect(object):
                 self._effsel_4vol= numpy.tile(effsel_4vol,
                                               (len(self._ra_cen_4vol),1))
             else: # Need to treat each los separately
-                if multi is None:
+                if ncpu is None:
                     self._effsel_4vol= numpy.empty((len(self._ra_cen_4vol),
                                                     len(self._dists_4vol)))
                     for ii,(ra_cen, dec_cen) \
