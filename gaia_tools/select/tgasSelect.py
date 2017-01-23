@@ -532,7 +532,7 @@ class tgasEffectiveSelect(object):
            tgasSel - a tgasSelect object with the TGAS selection function
            MJ= (1.8) absolute magnitude in J or an array of samples of absolute magnitudes in J for the tracer population
            JK= (0.25) J-Ks color or an array of samples of the J-Ks color
-           dmap3d= if given, a mwdust.Dustmap3D object that returns the J-band extinction in 3D; if not set use the Green15 Pan-STARRS map
+           dmap3d= if given, a mwdust.Dustmap3D object that returns the J-band extinction in 3D; if not set use no extinction
         OUTPUT:
            TGAS-effective-selection-function object
         HISTORY:
@@ -557,7 +557,7 @@ class tgasEffectiveSelect(object):
         if dmap3d is None:
             if not _MWDUSTLOADED:
                 raise ImportError("mwdust module not installed, required for extinction tools; download and install from http://github.com/jobovy/mwdust")
-            dmap3d= mwdust.Green15(filter='2MASS J')
+            dmap3d= mwdust.Zero(filter='2MASS J')
         self._dmap3d= dmap3d
         return None
 
