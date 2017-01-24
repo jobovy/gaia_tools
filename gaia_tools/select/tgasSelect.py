@@ -523,7 +523,8 @@ class tgasSelect(object):
         return None
 
 class tgasEffectiveSelect(object):
-    def __init__(self,tgasSel,MJ=1.8,JK=0.25,dmap3d=None):
+    def __init__(self,tgasSel,MJ=1.8,JK=0.25,dmap3d=None,
+                 maxd=None):
         """
         NAME:
            __init__
@@ -534,12 +535,14 @@ class tgasEffectiveSelect(object):
            MJ= (1.8) absolute magnitude in J or an array of samples of absolute magnitudes in J for the tracer population
            JK= (0.25) J-Ks color or an array of samples of the J-Ks color
            dmap3d= if given, a mwdust.Dustmap3D object that returns the J-band extinction in 3D; if not set use no extinction
+           maxd= (None) if given, only consider distances up to this maximum distance (in kpc)
         OUTPUT:
            TGAS-effective-selection-function object
         HISTORY:
            2017-01-18 - Started - Bovy (UofT/CCA)
         """
         self._tgasSel= tgasSel
+        self._maxd= maxd
         # Parse MJ
         if isinstance(MJ,(int,float)):
             self._MJ= numpy.array([MJ])
@@ -598,6 +601,8 @@ class tgasEffectiveSelect(object):
             tj= mj+distmod+aj
             tjk= jk+ejk
             out+= numpy.sum(pixarea*self._tgasSel(tj,tjk,ra,dec),axis=0)
+        if not self._maxd is None:
+            out[dist > self._maxd]= 0.
         return out/totarea/len(MJ)
 
     def volume(self,vol_func,xyz=False,MJ=None,JK=None,ndists=101,
