@@ -605,7 +605,8 @@ class tgasEffectiveSelect(object):
             out[dist > self._maxd]= 0.
         return out/totarea/len(MJ)
 
-    def volume(self,vol_func,xyz=False,MJ=None,JK=None,ndists=101,
+    def volume(self,vol_func,xyz=False,MJ=None,JK=None,
+               ndists=101,linearDist=False,
                ncpu=None):
         """
         NAME:
@@ -621,6 +622,7 @@ class tgasEffectiveSelect(object):
            MJ= (object-wide default) absolute magnitude in J or an array of samples of absolute  magnitudes in J for the tracer population
            JK= (object-wide default) J-Ks color or an array of samples of the J-Ks color 
            ndists= (101) number of distances to use in the distance integration
+           linearDist= (False) if True, integrate in distance rather than distance modulus
            ncpu= (None) if set to an integer, use this many CPUs to compute the effective selection function (only for non-zero extinction)
         OUTPUT
            effective volume
@@ -629,17 +631,24 @@ class tgasEffectiveSelect(object):
         """           
         # Pre-compute coordinates for integrand evaluation            
         if not hasattr(self,'_ra_cen_4vol') or \
-                (hasattr(self,'_ndists_4vol') and ndists != self._ndists_4vol):
+                (hasattr(self,'_ndists_4vol') and 
+                 (ndists != self._ndists_4vol or 
+                  linearDist != self._linearDist_4vol)):
             theta,phi= healpy.pix2ang(\
                 _BASE_NSIDE,numpy.arange(_BASE_NPIX)\
                     [True-self._tgasSel._exclude_mask_skyonly],nest=True)
             self._ra_cen_4vol= 180./numpy.pi*phi
             self._dec_cen_4vol= 90.-180./numpy.pi*theta
-            dms= numpy.linspace(0.,18.,ndists)
-            self._deltadm_4vol= dms[1]-dms[0]
+            if linearDist:
+                dists= numpy.linspace(0.001,10.,ndists)
+                dms= 5.*numpy.log10(dists)+10.
+                self._deltadm_4vol= dists[1]-dists[0]
+            else:
+                dms= numpy.linspace(0.,18.,ndists)
+                self._deltadm_4vol= (dms[1]-dms[0])*numpy.log(10.)/5.
             self._dists_4vol= 10.**(0.2*dms-2.)
-            self._tiled_dists3_4vol= numpy.tile(self._dists_4vol**3.,
-                                                (len(self._ra_cen_4vol),1))
+            self._tiled_dists3_4vol= numpy.tile(\
+                self._dists_4vol**(3.-linearDist),(len(self._ra_cen_4vol),1))
             self._tiled_ra_cen_4vol= numpy.tile(self._ra_cen_4vol,
                                                  (len(self._dists_4vol),1)).T
             self._tiled_dec_cen_4vol= numpy.tile(self._dec_cen_4vol,
@@ -661,7 +670,9 @@ class tgasEffectiveSelect(object):
         MJ, JK= self._parse_mj_jk(MJ,JK)
         new_hash= hashlib.md5(numpy.array([MJ,JK])).hexdigest()
         if not hasattr(self,'_vol_MJ_hash') or new_hash != self._vol_MJ_hash \
-             or (hasattr(self,'_ndists_4vol') and ndists != self._ndists_4vol):
+             or (hasattr(self,'_ndists_4vol') and 
+                 (ndists != self._ndists_4vol or 
+                  linearDist != self._linearDist_4vol)):
             # Need to update the effective-selection function
             if isinstance(self._dmap3d,mwdust.Zero): #easy bc same everywhere
                 effsel_4vol= self(self._dists_4vol,
@@ -688,6 +699,7 @@ class tgasEffectiveSelect(object):
                     self._effsel_4vol= numpy.array(multiOut)
             self._vol_MJ_hash= new_hash
             self._ndists_4vol= ndists
+            self._linearDist_4vol= linearDist
         out= 0.
         if xyz:
             out= numpy.sum(\
@@ -700,8 +712,7 @@ class tgasEffectiveSelect(object):
                     *vol_func(self._ra_cen_4vol,self._dec_cen_4vol,
                               self._dists_4vol)\
                     *self._tiled_dists3_4vol)
-        return out*numpy.log(10.)/5.\
-            *healpy.nside2pixarea(_BASE_NSIDE)*self._deltadm_4vol
+        return out*healpy.nside2pixarea(_BASE_NSIDE)*self._deltadm_4vol
 
     def _parse_mj_jk(self,MJ,JK):
         if MJ is None: MJ= self._MJ
