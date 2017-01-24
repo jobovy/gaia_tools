@@ -252,6 +252,7 @@ API
      * ``gaia_tools.load.lamost``
      * ``gaia_tools.load.rave``
      * ``gaia_tools.load.raveon``
+     * ``gaia_tools.load.tgas``
          * ``gaia_tools.load.download.vizier``
  * ``gaia_tools.xmatch``
      * ``gaia_tools.xmatch.xmatch``
