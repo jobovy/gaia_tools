@@ -607,6 +607,7 @@ class tgasEffectiveSelect(object):
 
     def volume(self,vol_func,xyz=False,MJ=None,JK=None,
                ndists=101,linearDist=False,
+               relative=False,
                ncpu=None):
         """
         NAME:
@@ -621,6 +622,7 @@ class tgasEffectiveSelect(object):
            xyz= (False) if True, vol_func is a function of X,Y,Z (see above)
            MJ= (object-wide default) absolute magnitude in J or an array of samples of absolute  magnitudes in J for the tracer population
            JK= (object-wide default) J-Ks color or an array of samples of the J-Ks color 
+           relative= (False) if True, compute the effective volume completeness = effective volume / true volume; computed using the same integration grid, so will be more robust against integration errors (especially due to the finite HEALPix grid for the angular integration). For simple volumes, a more precise effective volume can be computed by using relative=True and multiplying in the correct true volume
            ndists= (101) number of distances to use in the distance integration
            linearDist= (False) if True, integrate in distance rather than distance modulus
            ncpu= (None) if set to an integer, use this many CPUs to compute the effective selection function (only for non-zero extinction)
@@ -712,7 +714,18 @@ class tgasEffectiveSelect(object):
                     *vol_func(self._ra_cen_4vol,self._dec_cen_4vol,
                               self._dists_4vol)\
                     *self._tiled_dists3_4vol)
-        return out*healpy.nside2pixarea(_BASE_NSIDE)*self._deltadm_4vol
+        if relative:
+            if not hasattr(self,'_tgasEffSelUniform'):
+                tgasSelUniform= tgasSelectUniform(comp=1.)
+                self._tgasEffSelUniform= tgasEffectiveSelect(tgasSelUniform)
+            true_volume= self._tgasEffSelUniform.volume(vol_func,xyz=xyz,
+                                                        ndists=ndists,
+                                                        linearDist=linearDist,
+                                                        relative=False)
+        else:
+            true_volume= 1.
+        return out*healpy.nside2pixarea(_BASE_NSIDE)*self._deltadm_4vol\
+            /true_volume
 
     def _parse_mj_jk(self,MJ,JK):
         if MJ is None: MJ= self._MJ
@@ -728,6 +741,31 @@ class tgasEffectiveSelect(object):
         elif isinstance(JK,list):
             JK= numpy.array(JK)
         return (MJ,JK)
+
+class tgasSelectUniform(tgasSelect):
+    """Version of the tgasSelect code that has uniform completeness
+    in a simple part of the sky, for relative effective volume and testing"""
+    def __init__(self,comp=1.,ramin=None,ramax=None,keepexclude=False,
+                 **kwargs):
+        self._comp= comp
+        if ramin is None: self._ramin= -1.
+        else: self._ramin= ramin
+        if ramax is None: self._ramax= 361.
+        else: self._ramax= ramax
+        gaia_tools.select.tgasSelect.__init__(self,**kwargs)
+        if not keepexclude:
+            self._exclude_mask_skyonly[:]= False
+        if not ramin is None:
+            theta,phi= healpy.pix2ang(2**5,
+                                      numpy.arange(healpy.nside2npix(2**5)),
+                                      nest=True)
+            ra= 180./numpy.pi*phi
+            self._exclude_mask_skyonly[(ra < ramin)+(ra > ramax)]= True
+        return None
+
+    def __call__(self,j,jk,ra,dec):
+        if ra < self._ramin or ra > self._ramax: return numpy.zeros_like(j)
+        else: return numpy.ones_like(j)*self._comp
 
 def jt(jk,j):
     return j+jk**2.+2.5*jk
