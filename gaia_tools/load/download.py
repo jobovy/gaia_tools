@@ -12,6 +12,15 @@ import subprocess
 from gaia_tools.load import path
 _MAX_NTRIES= 2
 _ERASESTR= "                                                                                "
+def twomass(dr='tgas',verbose=True,spider=False):
+    filePath= path.twomassPath(dr=dr)
+    if os.path.exists(filePath): return None
+    if dr == 'tgas':
+        _download_file(\
+            'http://portal.nersc.gov/project/cosmo/temp/dstn/gaia/tgas-matched-2mass.fits.gz',
+            filePath,verbose=verbose,spider=spider)
+    return None    
+    
 def apogee(dr=13,verbose=True,spider=False):
     filePath= path.apogeePath(dr=dr)
     if os.path.exists(filePath): return None

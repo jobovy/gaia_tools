@@ -26,6 +26,8 @@ def twomass(dr='tgas'):
     if not dr.lower() == 'tgas':
         raise ValueError('Only the 2MASS data matched to TGAS is available currently')
     filePath= path.twomassPath(dr=dr)
+    if not os.path.exists(filePath):
+        download.twomass(dr=dr)
     return fitsio.read(filePath,1)
 
 def apogee(**kwargs):
