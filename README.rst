@@ -24,7 +24,9 @@ ACKNOWLEDGING USE OF THIS CODE
 ==============================
 
 Please refer back to this repository when using this code in your
-work.
+work. If you use the TGAS selection-function code in
+``gaia_tools.select.tgasSelect``, please cite Bovy (2017, in
+preparation).
 
 INSTALLATION
 ============
@@ -47,12 +49,14 @@ This package requires `NumPy <http://www.numpy.org/>`__, `astropy
 <https://github.com/esheldon/fitsio>`__, `tqdm
 <https://github.com/noamraph/tqdm>`__. Some functions require `Scipy
 <http://www.scipy.org/>`__ and `galpy
-<https://github.com/jobovy/galpy>`__. The selection-function code requires
-`healpy <https://github.com/healpy/healpy>`__. If the `apogee
-<https://github.com/jobovy/apogee>`__ package is installed, this
-package will use that to access the APOGEE data; otherwise they are
-downloaded separately into the **GAIA_TOOLS_DATA** directory (see
-below).
+<https://github.com/jobovy/galpy>`__. The selection-function code
+requires `healpy <https://github.com/healpy/healpy>`__; the
+effective-selection-function code requires `mwdust
+<https://github.com/jobovy/mwdust>`__ for dealing with extinction. If
+the `apogee <https://github.com/jobovy/apogee>`__ package is
+installed, this package will use that to access the APOGEE data;
+otherwise they are downloaded separately into the **GAIA_TOOLS_DATA**
+directory (see below).
 
 This package should work in both python 2 and 3. Please open an `issue
 <https://github.com/jobovy/gaia_tools/issues>`__ if you find a part of the
@@ -158,6 +162,125 @@ Let's see how these proper motions hold up in Gaia DR1! If you want to
 download a catalog from CDS, you can use
 ``gaia_tools.load.download.vizier``.
 
+The TGAS selection function
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Bovy (2017, in preparation) determine the raw TGAS selection function
+over the 48% of the sky where the TGAS selection is well behaved. This
+selection function gives the fraction of true point-like objects
+observed as a function of *(J,J-Ks)* 2MASS photometry and as a
+function of position on the sky. Bovy (2017, in prep.) also discuss
+how to turn this raw selection function into an effective selection
+function that returns the fraction of true stars contained in the TGAS
+catalog as a function of distance and position on the sky, for a given
+stellar population and how to compute the fractional volume of a given
+spatial region that is effective contained in TGAS. Tools to work with
+the raw and effective selection function are contained in the
+``gaia_tools.select.tgasSelect`` sub-module.
+
+The raw selection function is contained in an object and can be
+instantiated as follows::
+
+	     >>> import gaia_tools.select
+	     >>> tsf= gaia_tools.select.tgasSelect()
+
+When you run this code for the first time, a ~200 MB file that
+contains 2MASS counts necessary for the selection function will be
+downloaded. When instantiating the ``tgasSelect`` object, it is
+possible to make different choices for some of the parameters
+described by Bovy (2017, in prep.), but it is best to leave all
+keywords at their default values. To then evaluate the fraction
+observed at *J=10*, *J-Ks* = 0.5, RA= 10 deg, Dec= 70.deg, do::
+
+	 >>> tsf(10.,0.5,10.,70.)
+	 array([ 0.7646336])
+
+Another example::
+
+	>>> tsf(10.,0.5,10.,20.)
+	array([ 0.])
+
+The latter is exactly zero because the (RA,Dec) combination falls
+outside of the part of the sky over which the selection function is
+well behaved.
+
+We can turn the raw TGAS selection function into an effective
+selection function that is a function of distance rather than
+magnitude for a given stellar population by specifying a sampling of
+true intrinsic absolute *M_J$ and true *J-Ks* for this stellar
+population. We also require a three-dimensional extinction map,
+although by default the extinction is set to zero (for this, you need
+to install `mwdust <https://github.com/jobovy/mwdust>`__). A simple
+example of this is the following instance::
+
+	>>> import mwdust
+	>>> tesf= gaia_tools.select.tgasEffectiveSelect(tsf,dmap3d=mwdust.Zero(),MJ=-1.,JK=0.65)
+
+which is close to a red-clump effective selection function. We can
+then evaluate ``tesf`` as a function of (distance,RA,Dec) to give the
+fraction of stars with absolute *M_J = -1* and *J-Ks* = 0.65 contained
+in TGAS::
+
+   >>> tesf(1.,10.,70.)
+   array([ 0.89400531])
+
+We could do the same taking extinction into account::
+
+   >>> tesf_ext= gaia_tools.select.tgasEffectiveSelect(tsf,dmap3d=mwdust.Combined15(filter='2MASS J'),MJ=-1.,JK=0.65)
+   >>> tesf_ext(1.,10.,70.)
+   array([ 0.27263462])
+
+This is much lower, because the extinction toward (RA,Dec) = (70,10)
+=~ (l,b) = (122,7.1) is very high (A_J =~ 0.7).
+
+We can also compute the effective volume as defined by Bovy (2017, in
+prep.). For this, we need to define a function that defines the volume
+over which we want to compute the effective volume. For example, a
+cylindrical volume centered in the Sun is::
+
+   def cyl_vol_func(X,Y,Z,xymin=0.,xymax=0.15,zmin=0.05,zmax=0.15):
+       """A function that bins in cylindrical annuli around the Sun"""
+       xy= numpy.sqrt(X**2.+Y**2.)
+       out= numpy.zeros_like(X)
+       out[(xy >= xymin)*(xy < xymax)*(Z >= zmin)*(Z < zmax)]= 1.
+       return out
+
+We can then compute the effective volume for a cylinder of radius 0.15
+kpc from z=0.1 kpc to 0.2 kpc as::
+
+    >>> dxy= 0.15
+    >>> zmin= 0.1
+    >>> zmax= 0.2
+    >>> tesf.volume(lambda x,y,z: cyl_vol_func(x,y,z,xymax=dxy,zmin=zmin,zmax=zmax),ndists=101,xyz=True,relative=False)
+    0.0023609512382473932
+
+Setting ``relative=True`` would return the fractional effective
+volume, that is, the effective volume divided by the true spatial
+volume; computing the relative volume and multiplying it with the true
+volume is a more robust method for computing the effective volume
+(because pixelization effects in the computation of the effective
+volume cancel out). Compare::
+
+       >>> tesf.volume(lambda x,y,z: cyl_vol_func(x,y,z,xymax=dxy,zmin=zmin,zmax=zmax),ndists=101,xyz=True,relative=False)/(numpy.pi*dxy**2.*(zmax-zmin))
+       0.33400627552533657
+
+with::
+
+	>>> tesf.volume(lambda x,y,z: cyl_vol_func(x,y,z,xymax=dxy,zmin=zmin,zmax=zmax),ndists=101,xyz=True,relative=True)
+	0.3332136527277989
+
+As you are running these examples, you will notice that evaluating the
+effective volume is much faster the second time you do it (even for a
+different volume). This is because the evaluation of the selection
+function gets cached and re-used. Taking extinction into account (that
+is, running these examples using ``tesf_ext`` rather than ``tesf``)
+takes *much* longer. Tools to use multiprocessing are available in
+this case.
+
+For more examples of how to use this code, please see the
+`tgas-completeness <https://github.com/jobovy/tgas-completeness>`__
+repository, which contains all of the code to reproduce the results of
+Bovy (2017, in prep.).
 
 RECIPES
 ========
