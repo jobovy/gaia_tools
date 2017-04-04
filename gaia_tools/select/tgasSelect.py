@@ -70,7 +70,14 @@ ta[0][_2mc_skyonly[0].astype('int')]= _2mc_skyonly[0]
 ta[1][_2mc_skyonly[0].astype('int')]= _2mc_skyonly[1]
 _2mc_skyonly= ta
 #################### Read file with counts in jt, j-k, hp5 ####################
-_2mc= numpy.loadtxt(os.path.join(_SFFILES_DIR,'2massc_jk_jt_hp5_forsf.txt')).T
+_2mc_filename= os.path.join(_SFFILES_DIR,'2massc_jk_jt_hp5_forsf.txt')
+if not os.path.exists(_2mc_filename):
+    # download the file
+    from gaia_tools.load.download import _download_file
+    _download_file(\
+        'https://zenodo.org/record/494982/files/2massc_jk_jt_hp5_forsf.txt',
+        _2mc_filename,verbose=True)
+_2mc= numpy.loadtxt(_2mc_filename).T
 # Make value center of bin and re-normalize
 _2mc[0]+= 0.5
 _2mc[1]+= 0.5

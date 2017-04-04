@@ -43,9 +43,12 @@ DEPENDENCIES AND PYTHON VERSIONS
 =================================
 
 This package requires `NumPy <http://www.numpy.org/>`__, `astropy
-<http://www.astropy.org/>`__, and `fitsio
-<https://github.com/esheldon/fitsio>`__. Some functions require `Scipy
-<http://www.scipy.org/>`__. If the `apogee
+<http://www.astropy.org/>`__, `fitsio
+<https://github.com/esheldon/fitsio>`__, `tqdm
+<https://github.com/noamraph/tqdm>`__. Some functions require `Scipy
+<http://www.scipy.org/>`__ and `galpy
+<https://github.com/jobovy/galpy>`__. The selection-function code requires
+`healpy <https://github.com/healpy/healpy>`__. If the `apogee
 <https://github.com/jobovy/apogee>`__ package is installed, this
 package will use that to access the APOGEE data; otherwise they are
 downloaded separately into the **GAIA_TOOLS_DATA** directory (see
