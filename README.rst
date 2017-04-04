@@ -204,7 +204,9 @@ Another example::
 
 The latter is exactly zero because the (RA,Dec) combination falls
 outside of the part of the sky over which the selection function is
-well behaved.
+well behaved. The method ``tsf.determine_statistical`` can return the
+part of your TGAS sub-sample that is part of the sky over which the
+selection function is well behaved.
 
 We can turn the raw TGAS selection function into an effective
 selection function that is a function of distance rather than
@@ -382,6 +384,18 @@ API
      * ``gaia_tools.load.raveon``
      * ``gaia_tools.load.tgas``
          * ``gaia_tools.load.download.vizier``
+ * ``gaia_tools.select``
+     * ``gaia_tools.select.tgasSelect``
+         * ``__call__
+	 * ``determine_statistical``
+	 * ``plot_mean_quantity_tgas``
+	 * ``plot_2mass``
+	 * ``plot_tgas``
+	 * ``plot_cmd``
+	 * ``plot_magdist``
+     * ``gaia_tools.select.tgasEffectiveSelect``
+         * ``__call__``
+	 * ``volume``
  * ``gaia_tools.xmatch``
      * ``gaia_tools.xmatch.xmatch``
      * ``gaia_tools.xmatch.cds``
