@@ -235,7 +235,10 @@ We could do the same taking extinction into account::
    array([ 0.27263462])
 
 This is much lower, because the extinction toward (RA,Dec) = (70,10)
-=~ (l,b) = (122,7.1) is very high (A_J =~ 0.7).
+=~ (l,b) = (122,7.1) is very high (A_J =~ 0.7). Note that the ``MJ``
+and ``JK`` inputs can be arrays, in which case the result will be
+averaged over these, and they can also be changed on-the-fly when
+evaluating the effective selection function.
 
 We can also compute the effective volume as defined by Bovy (2017, in
 prep.). For this, we need to define a function that defines the volume
