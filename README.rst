@@ -174,8 +174,10 @@ how to turn this raw selection function into an effective selection
 function that returns the fraction of true stars contained in the TGAS
 catalog as a function of distance and position on the sky, for a given
 stellar population and how to compute the fractional volume of a given
-spatial region that is effective contained in TGAS. Tools to work with
-the raw and effective selection function are contained in the
+spatial region that is effectively contained in TGAS (this is the
+denominator in N/V when computing bias-corrected densities based on
+TGAS star counts in a certain spatial region). Tools to work with the
+raw and effective selection functions are contained in the
 ``gaia_tools.select.tgasSelect`` sub-module.
 
 The raw selection function is contained in an object and can be
@@ -207,7 +209,7 @@ well behaved.
 We can turn the raw TGAS selection function into an effective
 selection function that is a function of distance rather than
 magnitude for a given stellar population by specifying a sampling of
-true intrinsic absolute *M_J$ and true *J-Ks* for this stellar
+true intrinsic absolute *M_J* and true *J-Ks* for this stellar
 population. We also require a three-dimensional extinction map,
 although by default the extinction is set to zero (for this, you need
 to install `mwdust <https://github.com/jobovy/mwdust>`__). A simple
@@ -219,7 +221,7 @@ example of this is the following instance::
 which is close to a red-clump effective selection function. We can
 then evaluate ``tesf`` as a function of (distance,RA,Dec) to give the
 fraction of stars with absolute *M_J = -1* and *J-Ks* = 0.65 contained
-in TGAS::
+in TGAS, for example at 1 kpc distance and (RA,Dec) = (10,70)::
 
    >>> tesf(1.,10.,70.)
    array([ 0.89400531])
@@ -236,7 +238,7 @@ This is much lower, because the extinction toward (RA,Dec) = (70,10)
 We can also compute the effective volume as defined by Bovy (2017, in
 prep.). For this, we need to define a function that defines the volume
 over which we want to compute the effective volume. For example, a
-cylindrical volume centered in the Sun is::
+cylindrical volume centered on the Sun is::
 
    def cyl_vol_func(X,Y,Z,xymin=0.,xymax=0.15,zmin=0.05,zmax=0.15):
        """A function that bins in cylindrical annuli around the Sun"""
