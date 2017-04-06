@@ -7,7 +7,7 @@ import fitsio
 _APOGEE_LOADED= True
 try:
     import apogee.tools.read as apread
-except ImportError:
+except (ImportError,RuntimeError): # RuntimeError if apogee env. not setup
     _APOGEE_LOADED= False
 from gaia_tools.load import path, download
 def twomass(dr='tgas'):
