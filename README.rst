@@ -206,7 +206,20 @@ The latter is exactly zero because the (RA,Dec) combination falls
 outside of the part of the sky over which the selection function is
 well behaved. The method ``tsf.determine_statistical`` can return the
 part of your TGAS sub-sample that is part of the sky over which the
-selection function is well behaved.
+selection function is well behaved. For example, to plot the data in
+TGAS for which the selection function is determined, do::
+
+     >>> import gaia_tools.load as gload
+     >>> tgas_cat= gload.tgas()
+     >>> twomass= gload.twomass()
+     >>> indx= tsf.determine_statistical(tgas_cat,twomass['j_mag'],twomass['k_mag'])
+     >>> import healpy
+     >>> healpy.mollview(title="")
+     >>> healpy.projplot(tgas_cat['l'][indx],tgas_cat['b'][indx],'k,',lonlat=True,alpha=0.03)
+     
+which gives
+
+.. image:: _readme_files/tgas_stat.png
 
 We can turn the raw TGAS selection function into an effective
 selection function that is a function of distance rather than
