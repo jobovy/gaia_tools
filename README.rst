@@ -37,9 +37,13 @@ Either
 
 ``sudo python setup.py install``
 
-or 
+or install to a custom directory with
 
 ``python setup.py install --prefix=/some/directory/``
+
+or in your home directory with
+
+``python setup.py install --user``
 
 DEPENDENCIES AND PYTHON VERSIONS
 =================================
