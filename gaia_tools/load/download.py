@@ -167,7 +167,6 @@ def _download_file(downloadPath,filePath,verbose=False,spider=False):
         except OSError as e:
             if e.errno == os.errno.ENOENT:
                 raise OSError("Automagically downloading catalogs requires the wget program; please install wget and try again...")
-                pass
             else:
                 raise
         finally:
