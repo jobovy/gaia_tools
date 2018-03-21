@@ -25,8 +25,8 @@ ACKNOWLEDGING USE OF THIS CODE
 
 Please refer back to this repository when using this code in your
 work. If you use the TGAS selection-function code in
-``gaia_tools.select.tgasSelect``, please cite Bovy (2017, in
-preparation).
+``gaia_tools.select.tgasSelect``, please cite `Bovy (2017)
+<http://adsabs.harvard.edu/abs/2017MNRAS.470.1360B>`__.
 
 INSTALLATION
 ============
@@ -169,19 +169,20 @@ download a catalog from CDS, you can use
 The TGAS selection function
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Bovy (2017, in preparation) determine the raw TGAS selection function
-over the 48% of the sky where the TGAS selection is well behaved. This
-selection function gives the fraction of true point-like objects
-observed as a function of *(J,J-Ks)* 2MASS photometry and as a
-function of position on the sky. Bovy (2017, in prep.) also discuss
-how to turn this raw selection function into an effective selection
-function that returns the fraction of true stars contained in the TGAS
-catalog as a function of distance and position on the sky, for a given
-stellar population and how to compute the fractional volume of a given
-spatial region that is effectively contained in TGAS (this is the
-denominator in N/V when computing bias-corrected densities based on
-TGAS star counts in a certain spatial region). Tools to work with the
-raw and effective selection functions are contained in the
+`Bovy (2017) <http://adsabs.harvard.edu/abs/2017MNRAS.470.1360B>`__
+determines the raw TGAS selection function over the 48% of the sky
+where the TGAS selection is well behaved. This selection function
+gives the fraction of true point-like objects observed as a function
+of *(J,J-Ks)* 2MASS photometry and as a function of position on the
+sky. Bovy (2017) also discusses how to turn this raw selection
+function into an effective selection function that returns the
+fraction of true stars contained in the TGAS catalog as a function of
+distance and position on the sky, for a given stellar population and
+how to compute the fractional volume of a given spatial region that is
+effectively contained in TGAS (this is the denominator in N/V when
+computing bias-corrected densities based on TGAS star counts in a
+certain spatial region). Tools to work with the raw and effective
+selection functions are contained in the
 ``gaia_tools.select.tgasSelect`` sub-module.
 
 The raw selection function is contained in an object and can be
@@ -194,9 +195,9 @@ When you run this code for the first time, a ~200 MB file that
 contains 2MASS counts necessary for the selection function will be
 downloaded. When instantiating the ``tgasSelect`` object, it is
 possible to make different choices for some of the parameters
-described by Bovy (2017, in prep.), but it is best to leave all
-keywords at their default values. To then evaluate the fraction
-observed at *J=10*, *J-Ks* = 0.5, RA= 10 deg, Dec= 70.deg, do::
+described by Bovy (2017), but it is best to leave all keywords at
+their default values. To then evaluate the fraction observed at
+*J=10*, *J-Ks* = 0.5, RA= 10 deg, Dec= 70.deg, do::
 
 	 >>> tsf(10.,0.5,10.,70.)
 	 array([ 0.7646336])
@@ -257,8 +258,8 @@ and ``JK`` inputs can be arrays, in which case the result will be
 averaged over these, and they can also be changed on-the-fly when
 evaluating the effective selection function.
 
-We can also compute the effective volume as defined by Bovy (2017, in
-prep.). For this, we need to define a function that defines the volume
+We can also compute the effective volume as defined by Bovy
+(2017). For this, we need to define a function that defines the volume
 over which we want to compute the effective volume. For example, a
 cylindrical volume centered on the Sun is::
 
@@ -304,7 +305,7 @@ this case.
 For more examples of how to use this code, please see the
 `tgas-completeness <https://github.com/jobovy/tgas-completeness>`__
 repository, which contains all of the code to reproduce the results of
-Bovy (2017, in prep.).
+Bovy (2017).
 
 RECIPES
 ========
