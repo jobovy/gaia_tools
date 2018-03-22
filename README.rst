@@ -49,18 +49,22 @@ DEPENDENCIES AND PYTHON VERSIONS
 =================================
 
 This package requires `NumPy <http://www.numpy.org/>`__, `astropy
-<http://www.astropy.org/>`__, `fitsio
-<https://github.com/esheldon/fitsio>`__, `tqdm
-<https://github.com/noamraph/tqdm>`__. Some functions require `Scipy
-<http://www.scipy.org/>`__ and `galpy
+<http://www.astropy.org/>`__, `tqdm
+<https://github.com/noamraph/tqdm>`__. Additionally, some functions
+require `Scipy <http://www.scipy.org/>`__ and `galpy
 <https://github.com/jobovy/galpy>`__. The selection-function code
-requires `healpy <https://github.com/healpy/healpy>`__; the
+requires `healpy <https://github.com/healpy/healpy>`__ (most
+conveniently installed using ``conda``); the
 effective-selection-function code requires `mwdust
 <https://github.com/jobovy/mwdust>`__ for dealing with extinction. If
 the `apogee <https://github.com/jobovy/apogee>`__ package is
 installed, this package will use that to access the APOGEE data;
 otherwise they are downloaded separately into the **GAIA_TOOLS_DATA**
-directory (see below).
+directory (see below). With standard installation, astropy is used to
+read FITS files. Installing `fitsio
+<http://github.com/esheldon/fitsio>`__ will cause those routines to
+take precedence over `astropy
+<http://docs.astropy.org/en/stable/io/fits/index.html>`__.
 
 This package should work in both python 2 and 3. Please open an `issue
 <https://github.com/jobovy/gaia_tools/issues>`__ if you find a part of the

@@ -3,7 +3,12 @@ import warnings
 import numpy
 import numpy.lib.recfunctions
 import astropy.io.ascii
-import fitsio
+try:
+    import fitsio
+    fitsread= fitsio.read
+except ImportError:
+    import astropy.io.fits as pyfits
+    fitsread= pyfits.getdata
 _APOGEE_LOADED= True
 try:
     import apogee.tools.read as apread
@@ -28,7 +33,7 @@ def twomass(dr='tgas'):
     filePath= path.twomassPath(dr=dr)
     if not os.path.exists(filePath):
         download.twomass(dr=dr)
-    return fitsio.read(filePath,1)
+    return fitsread(filePath,1)
 
 def apogee(**kwargs):
     """
@@ -62,7 +67,7 @@ def apogee(**kwargs):
         filePath= path.apogeePath(dr=dr)
         if not os.path.exists(filePath):
             download.apogee(dr=dr)
-        return fitsio.read(filePath,1)
+        return fitsread(filePath,1)
     else:
         return apread.allStar(**kwargs)
 
@@ -91,7 +96,7 @@ def apogeerc(**kwargs):
         filePath= path.apogeercPath(dr=dr)
         if not os.path.exists(filePath):
             download.apogeerc(dr=dr)
-        return fitsio.read(filePath,1)
+        return fitsread(filePath,1)
     else:
         return apread.rcsample(**kwargs)
   
@@ -133,7 +138,7 @@ def lamost(dr=2,cat='all'):
     filePath= path.lamostPath(dr=dr,cat=cat)
     if not os.path.exists(filePath):
         download.lamost(dr=dr,cat=cat)
-    data= fitsio.read(filePath,1)
+    data= fitsread(filePath,1)
     return data
 
 def rave(dr=5, usecols=None):
@@ -178,7 +183,7 @@ def raveon(dr=5):
     filePath= path.raveonPath(dr=dr)
     if not os.path.exists(filePath):
         download.raveon(dr=dr)
-    data= fitsio.read(filePath,1)
+    data= fitsread(filePath,1)
     return data
 
 def tgas(dr=1):
@@ -198,7 +203,7 @@ def tgas(dr=1):
     if not numpy.all([os.path.exists(filePath) for filePath in filePaths]):
         download.tgas(dr=dr)
     return numpy.lib.recfunctions.stack_arrays(\
-        [fitsio.read(filePath,ext=1) for filePath in filePaths],
+        [fitsread(filePath,ext=1) for filePath in filePaths],
         autoconvert=True)
 
     

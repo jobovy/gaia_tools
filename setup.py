@@ -15,5 +15,5 @@ setup(name='gaia_tools',
                 'gaia_tools/xmatch','gaia_tools/select'],
       package_data={'gaia_tools/select':['2massc_hp5.txt'],
                     "": ["README.rst","LICENSE"]},
-      install_requires=['numpy','astropy','fitsio','tqdm','healpy']
+      install_requires=['numpy','astropy','tqdm']
       )
