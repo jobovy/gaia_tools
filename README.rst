@@ -97,7 +97,7 @@ and return the catalog (the data is stored locally in a manner that
 mirrors the Gaia archive, so downloading only happens once).
 
 Similarly, to get data for the `GALAH <https://galah-survey.org/>`__
-survey's DR1, do::
+survey's DR2, do::
 
     galah_cat= gload.galah()
 
@@ -379,13 +379,13 @@ Similar to RAVE above, we do::
 Make that second line ``apogee_cat= gaia_tools.load.apogeerc()`` for
 the APOGEE-RC catalog.
 
-Match GALAH to TGAS
-^^^^^^^^^^^^^^^^^^^^
+Match GALAH DR1 to TGAS
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 Similar to RAVE above, we do::
 
     tgas= gaia_tools.load.tgas()
-    galah_cat= gaia_tools.load.galah()
+    galah_cat= gaia_tools.load.galah(dr=1)
     m1,m2,sep= gaia_tools.xmatch.xmatch(galah_cat,tgas,
 					colRA1='RA',colDec1='dec',
 					colRA2='ra',colDec2='dec',
