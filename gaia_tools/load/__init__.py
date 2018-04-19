@@ -100,7 +100,7 @@ def apogeerc(**kwargs):
     else:
         return apread.rcsample(**kwargs)
   
-def galah(dr=1):
+def galah(dr=2):
     """
     NAME:
        galah
@@ -112,13 +112,20 @@ def galah(dr=1):
        data table
     HISTORY:
        2016-09-12 - Written - Bovy (UofT)
+       2018-04-19 - Updated for DR2 - Bovy (UofT)
     """
-    filePath, ReadMePath= path.galahPath(dr=dr)
+    if dr == 1 or dr == '1':
+        filePath, ReadMePath= path.galahPath(dr=dr)
+    else:
+        filePath= path.galahPath(dr=dr)
     if not os.path.exists(filePath):
         download.galah(dr=dr)
-    data= astropy.io.ascii.read(filePath,readme=ReadMePath)
-    data['RA']._fill_value= numpy.array([-9999.99])
-    data['dec']._fill_value= numpy.array([-9999.99])
+    if dr == 1  or dr == '1':
+        data= astropy.io.ascii.read(filePath,readme=ReadMePath)
+        data['RA']._fill_value= numpy.array([-9999.99])
+        data['dec']._fill_value= numpy.array([-9999.99])
+    else:
+        data= fitsread(filePath,1)
     return data
 
 def lamost(dr=2,cat='all'):

@@ -42,8 +42,11 @@ def apogeerc(dr=13,verbose=True,spider=False):
         filePath,verbose=verbose,spider=spider)
     return None    
     
-def galah(dr=1,verbose=True,spider=False):
-    filePath, ReadMePath= path.galahPath(dr=dr)
+def galah(dr=2,verbose=True,spider=False):
+    if dr == 1 or dr == '1':
+        filePath, ReadMePath= path.galahPath(dr=dr)
+    else:
+        filePath= path.galahPath(dr=dr)
     if os.path.exists(filePath): return None
     if dr == 1:
         _download_file(\
@@ -52,6 +55,11 @@ def galah(dr=1,verbose=True,spider=False):
         _download_file(\
             'https://cloudstor.aarnet.edu.au/plus/index.php/s/OMc9QWGG1koAK2D/download?path=%2F&files=ReadMe',
             ReadMePath,verbose=verbose,spider=spider)
+    else:
+        _download_file(\
+          os.path.join('https://datacentral.aao.gov.au/teamdata/GALAH/public/',
+                       os.path.basename(filePath)),
+            filePath,verbose=verbose,spider=spider)
     return None    
     
 def lamost(dr=2,cat='all',verbose=True):

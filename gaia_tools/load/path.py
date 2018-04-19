@@ -25,9 +25,14 @@ def apogeercPath(dr=13):
     return os.path.join(_GAIA_TOOLS_DATA,'apogee','DR%i' % dr,
                         'apogee-rc-DR%i.fits' % dr)
 
-def galahPath(dr=1):
-    return (os.path.join(_GAIA_TOOLS_DATA,'galah','DR%i' % dr,'catalog.dat'),
-            os.path.join(_GAIA_TOOLS_DATA,'galah','DR%i' % dr,'ReadMe'))
+def galahPath(dr=2):
+    if dr == 1 or dr == '1':
+        return (os.path.join(_GAIA_TOOLS_DATA,'galah','DR%i' % dr,
+                             'catalog.dat'),
+                os.path.join(_GAIA_TOOLS_DATA,'galah','DR%i' % dr,'ReadMe'))
+    elif dr == 2 or dr == '2':
+        return os.path.join(_GAIA_TOOLS_DATA,'galah','DR%i' % int(dr),
+                            'GALAH_DR2_catalog.fits')
 
 def lamostPath(dr=2,cat='all'):
     if cat.lower() == 'all':
