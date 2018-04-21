@@ -107,8 +107,19 @@ def raveon(dr=5,verbose=True,spider=False):
     
 def tgas(dr=1,verbose=True):
     filePaths= path.tgasPath(dr=dr)
-    for filePath in filePaths:
+    old_filePaths= path.tgasPath(dr=dr,old=True)
+    for filePath, old_filePath in zip(filePaths,old_filePaths):
         if os.path.exists(filePath): continue
+        # after DR1, Gaia archive changed URL to include 'gdr1', which we 
+        # now mirror locally, so check whether the file exists in the old 
+        # location and mv if necessary
+        if os.path.exists(old_filePath):
+            try:
+                # make all intermediate directories
+                os.makedirs(os.path.dirname(filePath))
+            except OSError: pass
+            shutil.move(old_filePath,filePath)
+            continue
         downloadPath= filePath.replace(path._GAIA_TOOLS_DATA.rstrip('/'),
                                        'http://cdn.gea.esac.esa.int')
         _download_file(downloadPath,filePath,verbose=verbose)

@@ -10,7 +10,7 @@ if _GAIA_TOOLS_DATA is None:
     )
 
 def twomassPath(dr='tgas'):
-    return os.path.join(_GAIA_TOOLS_DATA,'Gaia','dstn_match',
+    return os.path.join(_GAIA_TOOLS_DATA,'Gaia','gdr1','dstn_match',
                         'tgas-matched-2mass.fits.gz')
 
 def apogeePath(dr=13):
@@ -59,7 +59,12 @@ def raveonPath(dr=5):
     return os.path.join(_GAIA_TOOLS_DATA,
                         'raveon','DR%i' % dr,'RAVE-on-v1.0.fits.gz')
 
-def tgasPath(dr=1):
-    return [os.path.join(_GAIA_TOOLS_DATA,'Gaia','tgas_source','fits',
-                         'TgasSource_000-000-%03i.fits' % ii)
-            for ii in range(16)]
+def tgasPath(dr=1,old=False):
+    if old:
+        return [os.path.join(_GAIA_TOOLS_DATA,'Gaia','tgas_source','fits',
+                             'TgasSource_000-000-%03i.fits' % ii)
+                for ii in range(16)]
+    else:
+        return [os.path.join(_GAIA_TOOLS_DATA,'Gaia','gdr1','tgas_source','fits',
+                             'TgasSource_000-000-%03i.fits' % ii)
+                for ii in range(16)]
