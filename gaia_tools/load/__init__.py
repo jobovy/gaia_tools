@@ -100,6 +100,24 @@ def apogeerc(**kwargs):
     else:
         return apread.rcsample(**kwargs)
   
+def gaiarv(dr=2):
+    """
+    NAME:
+       gaiarv
+    PURPOSE:
+       Load the RV subset of the Gaia data
+    INPUT:
+       dr= (2) data release
+    OUTPUT:
+       data table
+    HISTORY:
+       2018-04-25 - Written for DR2 - Bovy (UofT)
+    """
+    filePaths= path.gaiarvPath(dr=dr,format='fits')
+    return numpy.lib.recfunctions.stack_arrays(\
+        [fitsread(filePath,ext=1) for filePath in filePaths],
+        autoconvert=True)
+
 def galah(dr=2):
     """
     NAME:
@@ -107,7 +125,7 @@ def galah(dr=2):
     PURPOSE:
        Load the GALAH data
     INPUT:
-       dr= (1) data release
+       dr= (2) data release
     OUTPUT:
        data table
     HISTORY:
