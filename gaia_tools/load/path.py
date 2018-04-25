@@ -1,4 +1,5 @@
 import os, os.path
+import glob
 
 _GAIA_TOOLS_DATA= os.getenv('GAIA_TOOLS_DATA')
 if _GAIA_TOOLS_DATA is None:
@@ -40,7 +41,11 @@ def gaiaSourcePath(dr=1,format='fits'):
                             format,
                             'GaiaSource_000-020-%03i.%s' % (ii,extension))
                     for ii in range(111)])
-        return out
+    elif dr == 2 or dr == '2':
+        return glob.glob(os.path.join(_GAIA_TOOLS_DATA,'Gaia','gdr2',
+                                      'gaia_source',format,
+                                      'GaiaSource_*.%s' % extension))
+    return out
 
 def galahPath(dr=2):
     if dr == 1 or dr == '1':
