@@ -25,6 +25,23 @@ def apogeercPath(dr=13):
     return os.path.join(_GAIA_TOOLS_DATA,'apogee','DR%i' % dr,
                         'apogee-rc-DR%i.fits' % dr)
 
+def gaiaSourcePath(dr=1,format='fits'):
+    if format == 'csv': extension= 'csv.gz'
+    else: extension= format
+    if dr == 1 or dr == '1':
+        out= []
+        for jj in range(20):
+            out.extend(\
+              [os.path.join(_GAIA_TOOLS_DATA,'Gaia','gdr1','gaia_source',
+                            format,
+                            'GaiaSource_000-%03i-%03i.%s' % (jj,ii,extension))
+               for ii in range(256)])
+        out.extend([os.path.join(_GAIA_TOOLS_DATA,'Gaia','gdr1','gaia_source',
+                            format,
+                            'GaiaSource_000-020-%03i.%s' % (ii,extension))
+                    for ii in range(111)])
+        return out
+
 def galahPath(dr=2):
     if dr == 1 or dr == '1':
         return (os.path.join(_GAIA_TOOLS_DATA,'galah','DR%i' % dr,
