@@ -72,7 +72,7 @@ def xmatch(cat1,cat2,maxdist=2,
         return (m1,m2,d2d[mindx])
 
 def cds(cat,xcat='vizier:I/345/gaia2',maxdist=2,colRA='RA',colDec='DEC',
-        epoch=2000.,colpmRA='pmra',colpmDec='pmdec',
+        selection='best',epoch=2000.,colpmRA='pmra',colpmDec='pmdec',
         savefilename=None):
     """
     NAME:
@@ -85,6 +85,7 @@ def cds(cat,xcat='vizier:I/345/gaia2',maxdist=2,colRA='RA',colDec='DEC',
        maxdist= (2) maximum distance in arcsec
        colRA= ('RA') name of the tag in cat with the right ascension
        colDec= ('DEC') name of the tag in cat with the declination
+       selection= ('best') select either all matches or the best match according to CDS (see 'selection' at http://cdsxmatch.u-strasbg.fr/xmatch/doc/API-calls.html)
        epoch= (2000.) epoch of the coordinates in cat
        colpmRA= ('pmra') name of the tag in cat with the proper motion in right ascension in degree in cat (assumed to be ICRS; includes cos(Dec)) [only used when epoch != 2000.]
        colpmDec= ('pmdec') name of the tag in cat with the proper motion in declination in degree in cat (assumed to be ICRS) [only used when epoch != 2000.]
@@ -107,6 +108,7 @@ def cds(cat,xcat='vizier:I/345/gaia2',maxdist=2,colRA='RA',colDec='DEC',
     else:
         dra= numpy.zeros(len(cat))
         ddec= numpy.zeros(len(cat))
+    if selection != 'all': selection= 'best'
     # Write positions
     posfilename= tempfile.mktemp('.csv',dir=os.getcwd())
     resultfilename= tempfile.mktemp('.csv',dir=os.getcwd())
@@ -114,7 +116,8 @@ def cds(cat,xcat='vizier:I/345/gaia2',maxdist=2,colRA='RA',colDec='DEC',
         wr= csv.writer(csvfile,delimiter=',',quoting=csv.QUOTE_MINIMAL)
         wr.writerow(['RA','DEC'])
         for ii in range(len(cat)):
-            wr.writerow([cat[ii][colRA]-dra[ii],cat[ii][colDec]]-ddec[ii])
+            wr.writerow([(cat[ii][colRA]-dra[ii]+360.) % 360.,
+                          cat[ii][colDec]]-ddec[ii])
     # Send to CDS for matching
     result= open(resultfilename,'w')
     try:
@@ -122,6 +125,7 @@ def cds(cat,xcat='vizier:I/345/gaia2',maxdist=2,colRA='RA',colDec='DEC',
                                '-X','POST',
                                '-F','request=xmatch',
                                '-F','distMaxArcsec=%i' % maxdist,
+                               '-F','selection=%s' % selection,
                                '-F','RESPONSEFORMAT=csv',
                                '-F','cat1=@%s' % os.path.basename(posfilename),
                                '-F','colRA1=RA',
@@ -144,14 +148,14 @@ def cds(cat,xcat='vizier:I/345/gaia2',maxdist=2,colRA='RA',colDec='DEC',
     else:
         shutil.move(resultfilename,savefilename)
     # Match back to the original catalog
-    mai= cds_matchback(cat,ma,colRA=colRA)
+    mai= cds_matchback(cat,ma,colRA=colRA,dra=dra)
     return (ma,mai)
 
 def cds_load(filename):
     return numpy.genfromtxt(filename,delimiter=',',skip_header=0,
                             filling_values=-9999.99,names=True)
 
-def cds_matchback(cat,xcat,colRA='RA'):
+def cds_matchback(cat,xcat,colRA='RA',dra=None):
     """
     NAME:
        cds_matchback
@@ -161,12 +165,15 @@ def cds_matchback(cat,xcat,colRA='RA'):
        cat - original catalog
        xcat - matched catalog returned by xmatch.cds
        colRA - the column with the RA tag in cat
+       dra - change in RA to bring colRA to J2000 (RAJ2000 = colRA-dra)
     OUTPUT:
        Array indices into cat of xcat entries: index[0] is cat index of xcat[0]
     HISTORY:
        2016-09-12 - Written - Bovy (UofT)
+       2018-05-04 - Account for non-zero epoch difference - Bovy (UofT)
     """
+    if dra is None: dra= numpy.zeros(len(cat))
     iis= numpy.arange(len(cat))
-    RAf= cat[colRA].astype('float') # necessary if not float, like for GALAH
+    RAf= (cat[colRA].astype('float')-dra+360.) % 360. # necessary if not float, like for GALAH DR1
     mai= [iis[RAf == xcat[ii]['RA']][0] for ii in range(len(xcat))]
     return mai
