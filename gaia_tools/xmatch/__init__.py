@@ -71,7 +71,7 @@ def xmatch(cat1,cat2,maxdist=2,
     else:
         return (m1,m2,d2d[mindx])
 
-def cds(cat,xcat='vizier:Tycho2',maxdist=2,colRA='RA',colDec='DEC',
+def cds(cat,xcat='vizier:I/345/gaia2',maxdist=2,colRA='RA',colDec='DEC',
         epoch=2000.,colpmRA='pmra',colpmDec='pmdec',
         savefilename=None):
     """
@@ -81,7 +81,7 @@ def cds(cat,xcat='vizier:Tycho2',maxdist=2,colRA='RA',colDec='DEC',
        Cross-match against a catalog in the CDS archive using the CDS cross-matching service (http://cdsxmatch.u-strasbg.fr/xmatch); uses the curl interface
     INPUT:
        cat - a catalog to cross match, requires 'RA' and 'DEC' keywords (see below)
-       xcat= ('vizier:Tycho2') name of the catalog to cross-match against, in a format understood by the CDS cross-matching service (see http://cdsxmatch.u-strasbg.fr/xmatch/doc/available-tables.html)
+       xcat= ('vizier:I/345/gaia2') name of the catalog to cross-match against, in a format understood by the CDS cross-matching service (see http://cdsxmatch.u-strasbg.fr/xmatch/doc/available-tables.html; things like 'vizier:Tycho2' or 'vizier:I/345/gaia2')
        maxdist= (2) maximum distance in arcsec
        colRA= ('RA') name of the tag in cat with the right ascension
        colDec= ('DEC') name of the tag in cat with the declination
