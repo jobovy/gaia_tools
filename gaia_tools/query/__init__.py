@@ -4,8 +4,9 @@ import numpy
 from astropy.table import Table
 from astroquery.gaia import Gaia
 import psycopg2
+from gaia_tools.query import cache as query_cache
 
-def query(sql_query,local=False,timeit=False,
+def query(sql_query,local=False,timeit=False,use_cache=True,
           dbname='catalogs',user='postgres'):
     """
     NAME:
@@ -16,6 +17,7 @@ def query(sql_query,local=False,timeit=False,
        sql_query - the text of the query
        local= (False) if True, run the query on a local postgres database
        timeit= (False) if True, print how long the query ran
+       use_cache= (True) if True use the query cache (load from the cache if exists, store to the cache for reuse otherwise)
        dbname= ('catalogs') if local, the name of the postgres database
        user= ('postgres') if local, the name of the postgres user
     OUTPUT:
@@ -27,6 +29,9 @@ def query(sql_query,local=False,timeit=False,
         sql_query= sql_query.replace('gaiadr2.','gdr2_')
     elif not local and 'gdr2_' in sql_query:
         sql_query= sql_query.replace('gdr2_','gaiadr2.')
+    if use_cache:
+        out= query_cache.load(sql_query)
+        if out: return out
     if local:
         conn= psycopg2.connect("dbname={} user={}".format(dbname,user))
         cur= conn.cursor()
@@ -43,5 +48,7 @@ def query(sql_query,local=False,timeit=False,
         job= Gaia.launch_job_async(sql_query)
         if timeit: print("Query took {:.3f} s".format(time.time()-start))
         out= job.get_results()
+    if use_cache:
+        query_cache.save(sql_query,out)
     return out
 
