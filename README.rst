@@ -160,14 +160,13 @@ cross-match the APOGEE-RC data and TGAS do::
 Further, it is possible to cross-match any catalog to the catalogs in
 the CDS database using the `CDS cross-matching service
 <http://cdsxmatch.u-strasbg.fr/xmatch>`__. For example, to match the
-GALAH catalog to the Tycho-2 catalog, do the following::
+GALAH catalog to the Gaia DR2catalog, do the following::
 
-   tyc2_matches, matches_indx= xmatch.cds(galah_cat,colRA='raj2000',colDec='dej2000',xcat='vizier:Tycho2')
-   print(galah_cat['RA'][matches_indx[0]],tyc2_matches['RA_1'][0],tyc2_matches['pmRA'][matches_indx[0]],tyc2_matches['pmDE'][matches_indx[0]])
+   gaia2_matches, matches_indx= xmatch.cds(galah_cat,colRA='raj2000',colDec='dej2000',xcat='vizier:I/345/gaia2')
+   print(galah_cat['raj2000'][matches_indx[0]],gaia2_matches['ra_epoch2000'][0],gaia2_matches['pmra'][matches_indx[0]],gaia2_matches['pmdec'][matches_indx[0]])
    ('209.8838244', 209.88408100000001, -23.100000000000001, -10.699999999999999)
 
-Let's see how these proper motions hold up in Gaia DR1! If you want to
-download a catalog from CDS, you can use
+If you want to download a catalog from CDS, you can use
 ``gaia_tools.load.download.vizier``.
 
 The TGAS selection function
