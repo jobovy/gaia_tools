@@ -162,7 +162,7 @@ the CDS database using the `CDS cross-matching service
 <http://cdsxmatch.u-strasbg.fr/xmatch>`__. For example, to match the
 GALAH catalog to the Tycho-2 catalog, do the following::
 
-   tyc2_matches, matches_indx= xmatch.cds(galah_cat,colDec='dec',xcat='vizier:Tycho2')
+   tyc2_matches, matches_indx= xmatch.cds(galah_cat,colRA='raj2000',colDec='dej2000',xcat='vizier:Tycho2')
    print(galah_cat['RA'][matches_indx[0]],tyc2_matches['RA_1'][0],tyc2_matches['pmRA'][matches_indx[0]],tyc2_matches['pmDE'][matches_indx[0]])
    ('209.8838244', 209.88408100000001, -23.100000000000001, -10.699999999999999)
 
