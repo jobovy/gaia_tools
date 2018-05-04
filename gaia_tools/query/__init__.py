@@ -1,10 +1,12 @@
 # gaia_tools.query: some helper functions for querying the Gaia database
+import time
 import numpy
 from astropy.table import Table
 from astroquery.gaia import Gaia
 import psycopg2
 
-def query(sql_query,local=False,dbname='catalogs',user='postgres'):
+def query(sql_query,local=False,timeit=False,
+          dbname='catalogs',user='postgres'):
     """
     NAME:
        query
@@ -12,6 +14,10 @@ def query(sql_query,local=False,dbname='catalogs',user='postgres'):
        perform a query, either on a local server or on the Gaia archive
     INPUT:
        sql_query - the text of the query
+       local= (False) if True, run the query on a local postgres database
+       timeit= (False) if True, print how long the query ran
+       dbname= ('catalogs') if local, the name of the postgres database
+       user= ('postgres') if local, the name of the postgres user
     OUTPUT:
        result
     HISTORY:
@@ -24,14 +30,18 @@ def query(sql_query,local=False,dbname='catalogs',user='postgres'):
     if local:
         conn= psycopg2.connect("dbname={} user={}".format(dbname,user))
         cur= conn.cursor()
+        if timeit: start= time.time()
         cur.execute(sql_query)
+        if timeit: print("Query took {:.3f} s".format(time.time()-start))
         out= cur.fetchall()
         names= [desc[0] for desc in cur.description]
         cur.close()
         conn.close()       
         out= Table(numpy.array(out),names=names)
     else:
+        if timeit: start= time.time()
         job= Gaia.launch_job_async(sql_query)
+        if timeit: print("Query took {:.3f} s".format(time.time()-start))
         out= job.get_results()
     return out
 
