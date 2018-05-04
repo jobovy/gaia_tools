@@ -6,10 +6,12 @@ import shutil
 import glob
 import hashlib
 import pickle
+import dateutil.parser
 
 _CACHE_DIR= os.path.join(os.path.expanduser('~'),'.gaia_tools','query_cache')
 if not os.path.exists(_CACHE_DIR):
     os.makedirs(_CACHE_DIR)
+
 def current_files():
     """
     NAME:
@@ -82,6 +84,30 @@ def load(sql_query):
                 results= pickle.load(savefile)
             return results
     return False
+
+def clean():
+    """
+    NAME:
+       clean
+    PURPOSE:
+       clean out the cache: removes all cached files that follow the standard datetime_hash.pkl filename format; renamed files will be retained
+    INPUT:
+       (none)
+    OUTPUT:
+       (none)
+    HISTORY:
+       2018-05-04 - Written - Bovy (UofT)
+    """
+    all_current_files= current_files()
+    for existing_file in all_current_files:
+        try:
+            tdate,thashpkl= os.path.basename(existing_file).split('_')
+            dateutil.parser.parse(tdate)
+        except: continue
+        thash,pkl= thashpkl.split('.')
+        if not len(thash) == 32 or not pkl == 'pkl': continue
+        os.remove(existing_file)
+    return None
 
 def save_pickles(savefilename,*args,**kwargs):
     """
