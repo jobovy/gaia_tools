@@ -105,8 +105,8 @@ def cds(cat,xcat='vizier:Tycho2',maxdist=2,colRA='RA',colDec='DEC',
             /3600000.*depoch
         ddec= cat[colpmDec]/3600000.*depoch
     else:
-        dra= 0.
-        ddec= 0.
+        dra= numpy.zeros(len(cat))
+        ddec= numpy.zeros(len(cat))
     # Write positions
     posfilename= tempfile.mktemp('.csv',dir=os.getcwd())
     resultfilename= tempfile.mktemp('.csv',dir=os.getcwd())
