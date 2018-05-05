@@ -155,7 +155,7 @@ def cds_load(filename):
     return numpy.genfromtxt(filename,delimiter=',',skip_header=0,
                             filling_values=-9999.99,names=True)
 
-def cds_matchback(cat,xcat,colRA='RA',dra=None):
+def cds_matchback(cat,xcat,colRA='RA',dra=None,selection='best'):
     """
     NAME:
        cds_matchback
@@ -166,6 +166,7 @@ def cds_matchback(cat,xcat,colRA='RA',dra=None):
        xcat - matched catalog returned by xmatch.cds
        colRA - the column with the RA tag in cat
        dra - change in RA to bring colRA to J2000 (RAJ2000 = colRA-dra)
+       selection= ('best') select either all matches or the best match according to CDS (see 'selection' at http://cdsxmatch.u-strasbg.fr/xmatch/doc/API-calls.html)
     OUTPUT:
        Array indices into cat of xcat entries: index[0] is cat index of xcat[0]
     HISTORY:
@@ -175,5 +176,8 @@ def cds_matchback(cat,xcat,colRA='RA',dra=None):
     if dra is None: dra= numpy.zeros(len(cat))
     iis= numpy.arange(len(cat))
     RAf= (cat[colRA].astype('float')-dra+360.) % 360. # necessary if not float, like for GALAH DR1
-    mai= [iis[RAf == xcat[ii]['RA']][0] for ii in range(len(xcat))]
+    if not selection == 'all':
+        mai= [iis[numpy.fabs(RAf-xcat[ii]['RA']) < 1e-12][0] for ii in range(len(xcat))]
+    else:
+        mai= [iis[numpy.fabs(RAf-xcat[ii]['RA']) < 1e-12] for ii in range(len(xcat))]
     return mai
