@@ -96,7 +96,7 @@ to each other. For example, to load the `TGAS <http://www.cosmos.esa.int/web/gai
 
 The first time you use this function, it will download the TGAS data
 and return the catalog (the data is stored locally in a manner that
-mirrors the Gaia archive, so downloading only happens once).
+mirrors the Gaia Archive, so downloading only happens once).
 
 Similarly, you can load the RV subsample of `Gaia DR2 <https://www.cosmos.esa.int/web/gaia/dr2>`__ using::
 
@@ -176,7 +176,7 @@ GALAH catalog to the Gaia DR2catalog, do the following::
 If you want to download a catalog from CDS, you can use
 ``gaia_tools.load.download.vizier``.
 
-Tools for querying the Gaia archive
+Tools for querying the Gaia Archive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The large amount of data in Gaia's DR2 means that to access the full
