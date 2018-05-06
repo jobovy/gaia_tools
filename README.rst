@@ -96,7 +96,7 @@ to each other. For example, to load the `TGAS <http://www.cosmos.esa.int/web/gai
 
 The first time you use this function, it will download the TGAS data
 and return the catalog (the data is stored locally in a manner that
-mirrors the Gaia archive, so downloading only happens once).
+mirrors the Gaia Archive, so downloading only happens once).
 
 Similarly, you can load the RV subsample of `Gaia DR2 <https://www.cosmos.esa.int/web/gaia/dr2>`__ using::
 
@@ -171,12 +171,12 @@ GALAH catalog to the Gaia DR2catalog, do the following::
 
    gaia2_matches, matches_indx= xmatch.cds(galah_cat,colRA='raj2000',colDec='dej2000',xcat='vizier:I/345/gaia2')
    print(galah_cat['raj2000'][matches_indx[0]],gaia2_matches['ra_epoch2000'][0],gaia2_matches['pmra'][matches_indx[0]],gaia2_matches['pmdec'][matches_indx[0]])
-   ('209.8838244', 209.88408100000001, -23.100000000000001, -10.699999999999999)
+   (0.00047,0.00049021022,22.319,-10.229)
 
 If you want to download a catalog from CDS, you can use
 ``gaia_tools.load.download.vizier``.
 
-Tools for querying the Gaia archive
+Tools for querying the Gaia Archive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The large amount of data in Gaia's DR2 means that to access the full
