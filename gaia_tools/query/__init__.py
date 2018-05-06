@@ -5,6 +5,7 @@ from astropy.table import Table
 from astroquery.gaia import Gaia
 import psycopg2
 from gaia_tools.query import cache as query_cache
+query_cache.autoclean()
 
 def query(sql_query,local=False,timeit=False,use_cache=True,
           dbname='catalogs',user='postgres'):

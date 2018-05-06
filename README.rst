@@ -184,8 +184,8 @@ catalog, the easiest way is to perform ADQL or SQL queries against the
 `Gaia Archive database <https://gea.esac.esa.int/archive/>`__. Some
 tools to help with this are located in ``gaia_tools.query``.
 
-The only function current in this module is ``query.query``, which can
-be used to send a query either to the central Gaia Archive or to a
+The only function currently in this module is ``query.query``, which
+can be used to send a query either to the central Gaia Archive or to a
 local Postgres copy of the database. When using a local copy of the
 database, the main Gaia table is best named ``gaiadr2_gaia_source``
 (for ``gaiadr2.gaia_source`` on the Gaia Archive) and similarly
@@ -193,7 +193,14 @@ database, the main Gaia table is best named ``gaiadr2_gaia_source``
 *same* query can be run locally or remotely (``query.query`` will
 automatically adjust the tablename), making it easy to mix use of the
 local database and the Gaia Archive. The name and user of the local
-database can be set using the ``dbname=`` and ``user=`` options. Queries can be timed using ``timeit=True``.
+database can be set using the ``dbname=`` and ``user=``
+options. Queries can be timed using ``timeit=True``.
+
+To setup your own local database with Gaia DR2, you can follow the
+steps described about halfway down `this section
+<http://astro.utoronto.ca/~bovy/group/data.html#2mass>`__. Note that
+you will need >1TB of space and be familiar with Postgres database
+management.
 
 For example, to generate the average proper motion maps displayed
 `here <https://twitter.com/jobovy/status/992455544291049472>`__, do::
@@ -207,7 +214,7 @@ For example, to generate the average proper motion maps displayed
       GROUP BY hpx5;"""
       # Add and random_index between 0 and 1000000 to the WHERE line for a quicker subset
 
-and then run the query locally as
+and then run the query locally as::
 
     out= query.query(pm_query,local=True)
 
@@ -234,9 +241,13 @@ knowing what queries they represent. To clean the cache, do::
 
 which removes all cached files with the default ``date/time_hash.pkl``
 filename format (that is, if you have renamed a cached file, it is not
-removed by ``cache.clean()``).
+removed by ``cache.clean()``). To remove absolutely all files
+(including renamed ones), use ``cache.cleanall()``. Upon loading the
+``gaia_tools.query`` module, cached files with the default
+``date/time_hash.pkl`` filename format *older than one week* are
+removed.
 
-To turn off the caching, run queries using ``use_cache=False``.
+To turn off caching, run queries using ``use_cache=False``.
 
 The TGAS selection function
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -481,11 +492,13 @@ API
  * ``gaia_tools.query``
      * ``gaia_tools.query.query``
      * ``gaia_tools.query.cache``
+        * ``gaia_tools.query.cache.autoclean``
+        * ``gaia_tools.query.cache.clean``
+        * ``gaia_tools.query.cache.cleanall``
         * ``gaia_tools.query.cache.current_files``
         * ``gaia_tools.query.cache.file_path``
-        * ``gaia_tools.query.cache.save``
         * ``gaia_tools.query.cache.load``
-        * ``gaia_tools.query.cache.clean``
+        * ``gaia_tools.query.cache.save``
  * ``gaia_tools.select``
      * ``gaia_tools.select.tgasSelect``
          * ``__call__
