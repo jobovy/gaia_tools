@@ -30,9 +30,17 @@ def gaiarvPath(dr=2,format='fits'):
     if format == 'csv': extension= 'csv.gz'
     else: extension= format
     if dr == 2 or dr == '2':
-        return glob.glob(os.path.join(_GAIA_TOOLS_DATA,'Gaia','gdr2',
-                                      'gaia_source_with_rv',format,
-                                      'GaiaSource_*.%s' % extension))
+        filenames= ['GaiaSource_1584380076484244352_2200921635402776448',
+                    'GaiaSource_2200921875920933120_3650804325670415744',
+                    'GaiaSource_2851858288640_1584379458008952960',
+                    'GaiaSource_3650805523966057472_4475721411269270528',
+                    'GaiaSource_4475722064104327936_5502601461277677696',
+                    'GaiaSource_5502601873595430784_5933051501826387072',
+                    'GaiaSource_5933051914143228928_6714230117939284352',
+                    'GaiaSource_6714230465835878784_6917528443525529728']
+        return [os.path.join(_GAIA_TOOLS_DATA,'Gaia','gdr2',
+                             'gaia_source_with_rv',format,
+                             f+'.%s' % extension) for f in filenames]
 
 def gaiaSourcePath(dr=1,format='fits'):
     if format == 'csv': extension= 'csv.gz'
