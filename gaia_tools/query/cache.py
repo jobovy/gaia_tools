@@ -85,24 +85,35 @@ def load(sql_query):
             return results
     return False
 
-def clean():
+def cleanall():
+    return clean(all=True)
+def autoclean():
+    return clean(auto=True)
+def clean(all=False,auto=False):
     """
     NAME:
        clean
     PURPOSE:
        clean out the cache: removes all cached files that follow the standard datetime_hash.pkl filename format; renamed files will be retained
     INPUT:
-       (none)
+       all= (False) if True, remove *all* cached files (including renamed ones)
+       auto= (False) if True, autoclean (remove all files in standard format more than one week old; all=True still removes all files)
     OUTPUT:
        (none)
     HISTORY:
        2018-05-04 - Written - Bovy (UofT)
+       2018-05-06 - Added all and auto options - Bovy (UofT)
     """
+    one_week_ago= datetime.datetime.now()-datetime.timedelta(days=7)
     all_current_files= current_files()
     for existing_file in all_current_files:
+        if all:
+            os.remove(existing_file)
+            continue
         try:
             tdate,thashpkl= os.path.basename(existing_file).split('_')
-            dateutil.parser.parse(tdate)
+            tdate= dateutil.parser.parse(tdate)
+            if auto and tdate > one_week_ago: continue
         except: continue
         thash,pkl= thashpkl.split('.')
         if not len(thash) == 32 or not pkl == 'pkl': continue

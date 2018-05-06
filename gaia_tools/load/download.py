@@ -9,6 +9,7 @@ import shutil
 import tempfile
 from ftplib import FTP
 import subprocess
+from astropy.io import ascii
 from gaia_tools.load import path
 _MAX_NTRIES= 2
 _ERASESTR= "                                                                                "
@@ -125,7 +126,21 @@ def tgas(dr=1,verbose=True):
         _download_file(downloadPath,filePath,verbose=verbose)
     return None    
     
-
+def gaiarv(dr=2,verbose=True):
+    filePaths= path.gaiarvPath(dr=dr,format='fits')
+    csvFilePaths= path.gaiarvPath(dr=dr,format='csv')
+    for filePath, csvFilePath in zip(filePaths,csvFilePaths):
+        if os.path.exists(filePath): continue
+        try:
+            os.makedirs(os.path.dirname(filePath)) 
+        except OSError: pass
+        downloadPath= csvFilePath.replace(path._GAIA_TOOLS_DATA.rstrip('/'),
+                                       'http://cdn.gea.esac.esa.int')
+        _download_file(downloadPath,csvFilePath,verbose=verbose)
+        data= ascii.read(csvFilePath,format='csv')
+        data.write(filePath,format='fits')
+    return None    
+    
 def vizier(cat,filePath,ReadMePath,
            catalogname='catalog.dat',readmename='ReadMe'):
     """

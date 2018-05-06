@@ -49,8 +49,10 @@ DEPENDENCIES AND PYTHON VERSIONS
 =================================
 
 This package requires `NumPy <http://www.numpy.org/>`__, `astropy
-<http://www.astropy.org/>`__, `tqdm
-<https://github.com/noamraph/tqdm>`__. Additionally, some functions
+<http://www.astropy.org/>`__, `astroquery
+<https://astroquery.readthedocs.io/en/latest/>`__, `tqdm
+<https://github.com/noamraph/tqdm>`__, and `dateutil
+<https://dateutil.readthedocs.io>`__. Additionally, some functions
 require `Scipy <http://www.scipy.org/>`__ and `galpy
 <https://github.com/jobovy/galpy>`__. The selection-function code
 requires `healpy <https://github.com/healpy/healpy>`__ (most
@@ -96,8 +98,13 @@ The first time you use this function, it will download the TGAS data
 and return the catalog (the data is stored locally in a manner that
 mirrors the Gaia archive, so downloading only happens once).
 
-Similarly, to get data for the `GALAH <https://galah-survey.org/>`__
-survey's DR2, do::
+Similarly, you can load the RV subsample of `Gaia DR2 <https://www.cosmos.esa.int/web/gaia/dr2>`__ using::
+
+    gaiarv_cat= gload.gaiarv()
+
+which again downloads the data upon the first invocation (and also converts it to fits format for faster access in the futures; not that the original CSV files are retained under ``$GAIA_TOOLS_DATA/Gaia/gdr2/gaia_source_with_rv/csv`` and you might want to delete these to save space).
+
+``gaia_tools`` can also load data from various additional surveys, for example, for the `GALAH <https://galah-survey.org/>`__ survey's DR2 data, do::
 
     galah_cat= gload.galah()
 
@@ -168,6 +175,79 @@ GALAH catalog to the Gaia DR2catalog, do the following::
 
 If you want to download a catalog from CDS, you can use
 ``gaia_tools.load.download.vizier``.
+
+Tools for querying the Gaia archive
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The large amount of data in Gaia's DR2 means that to access the full
+catalog, the easiest way is to perform ADQL or SQL queries against the
+`Gaia Archive database <https://gea.esac.esa.int/archive/>`__. Some
+tools to help with this are located in ``gaia_tools.query``.
+
+The only function currently in this module is ``query.query``, which
+can be used to send a query either to the central Gaia Archive or to a
+local Postgres copy of the database. When using a local copy of the
+database, the main Gaia table is best named ``gaiadr2_gaia_source``
+(for ``gaiadr2.gaia_source`` on the Gaia Archive) and similarly
+``gaiadr2_gaia_source_with_rv`` for the RV subset. In this case, the
+*same* query can be run locally or remotely (``query.query`` will
+automatically adjust the tablename), making it easy to mix use of the
+local database and the Gaia Archive. The name and user of the local
+database can be set using the ``dbname=`` and ``user=``
+options. Queries can be timed using ``timeit=True``.
+
+To setup your own local database with Gaia DR2, you can follow the
+steps described about halfway down `this section
+<http://astro.utoronto.ca/~bovy/group/data.html#2mass>`__. Note that
+you will need >1TB of space and be familiar with Postgres database
+management.
+
+For example, to generate the average proper motion maps displayed
+`here <https://twitter.com/jobovy/status/992455544291049472>`__, do::
+
+      pm_query= """SELECT hpx5, AVG((c1*pmra+c2*pmdec)/cos(b_rad)) AS mpmll, 
+      AVG((-c2*pmra+c1*pmdec)/cos(b_rad)) AS mpmbb
+      FROM (SELECT source_id/562949953421312 as hpx5,pmra,pmdec,radians(b) as b_rad,parallax,
+      0.4559838136873017*cos(radians(dec))-0.889988068265628*sin(radians(dec))*cos(radians(ra-192.85947789477598)) as c1,
+      0.889988068265628*sin(radians(ra-192.85947789477598)) as c2 FROM gaiadr2.gaia_source
+      WHERE phot_g_mean_mag < 17.) tab
+      GROUP BY hpx5;"""
+      # Add and random_index between 0 and 1000000 to the WHERE line for a quicker subset
+
+and then run the query locally as::
+
+    out= query.query(pm_query,local=True)
+
+Setting ``local=False`` will run the query on the Gaia Archive (but
+note that without the additional ``and random_index between 0 and
+1000000`` the query will likely time out on the Gaia Archive; this is
+one reason to have a local copy!)
+
+``query.query`` by default also maintains a cache of queries run
+previously. That is, if you run the exact same query a second time,
+the cached result is returned rather than re-running the query (which
+might take a while); this is useful, for example, when re-running a
+piece of code for which running the query is only a single part. The
+location of the cache directory is ``$HOME/.gaia_tools/query_cache``
+where ``$HOME`` is your home directory. The results from queries are
+cached as pickles, with filenames consisting of the date/time of when
+the query was run and a hash of the query. You may rename cached
+queries, as long as you retain the hash in the filename; this is
+useful to keep track of queries that you do not want to lose and
+knowing what queries they represent. To clean the cache, do::
+
+	from gaia_tools.query import cache
+	cache.clean()
+
+which removes all cached files with the default ``date/time_hash.pkl``
+filename format (that is, if you have renamed a cached file, it is not
+removed by ``cache.clean()``). To remove absolutely all files
+(including renamed ones), use ``cache.cleanall()``. Upon loading the
+``gaia_tools.query`` module, cached files with the default
+``date/time_hash.pkl`` filename format *older than one week* are
+removed.
+
+To turn off caching, run queries using ``use_cache=False``.
 
 The TGAS selection function
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -402,12 +482,23 @@ API
  * ``gaia_tools.load``
      * ``gaia_tools.load.apogee``
      * ``gaia_tools.load.apogeerc``
+     * ``gaia_tools.load.gaiarv``
      * ``gaia_tools.load.galah``
      * ``gaia_tools.load.lamost``
      * ``gaia_tools.load.rave``
      * ``gaia_tools.load.raveon``
      * ``gaia_tools.load.tgas``
          * ``gaia_tools.load.download.vizier``
+ * ``gaia_tools.query``
+     * ``gaia_tools.query.query``
+     * ``gaia_tools.query.cache``
+        * ``gaia_tools.query.cache.autoclean``
+        * ``gaia_tools.query.cache.clean``
+        * ``gaia_tools.query.cache.cleanall``
+        * ``gaia_tools.query.cache.current_files``
+        * ``gaia_tools.query.cache.file_path``
+        * ``gaia_tools.query.cache.load``
+        * ``gaia_tools.query.cache.save``
  * ``gaia_tools.select``
      * ``gaia_tools.select.tgasSelect``
          * ``__call__

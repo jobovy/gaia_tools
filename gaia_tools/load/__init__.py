@@ -114,6 +114,8 @@ def gaiarv(dr=2):
        2018-04-25 - Written for DR2 - Bovy (UofT)
     """
     filePaths= path.gaiarvPath(dr=dr,format='fits')
+    if not numpy.all([os.path.exists(filePath) for filePath in filePaths]):
+        download.gaiarv(dr=dr)
     return numpy.lib.recfunctions.stack_arrays(\
         [fitsread(filePath,ext=1) for filePath in filePaths],
         autoconvert=True)
