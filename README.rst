@@ -501,7 +501,7 @@ API
         * ``gaia_tools.query.cache.save``
  * ``gaia_tools.select``
      * ``gaia_tools.select.tgasSelect``
-         * ``__call__
+         * ``__call__``
 	 * ``determine_statistical``
 	 * ``plot_mean_quantity_tgas``
 	 * ``plot_2mass``
