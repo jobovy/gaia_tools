@@ -171,7 +171,7 @@ GALAH catalog to the Gaia DR2catalog, do the following::
 
    gaia2_matches, matches_indx= xmatch.cds(galah_cat,colRA='raj2000',colDec='dej2000',xcat='vizier:I/345/gaia2')
    print(galah_cat['raj2000'][matches_indx[0]],gaia2_matches['ra_epoch2000'][0],gaia2_matches['pmra'][matches_indx[0]],gaia2_matches['pmdec'][matches_indx[0]])
-   ('209.8838244', 209.88408100000001, -23.100000000000001, -10.699999999999999)
+   (0.00047,0.00049021022,22.319,-10.229)
 
 If you want to download a catalog from CDS, you can use
 ``gaia_tools.load.download.vizier``.
