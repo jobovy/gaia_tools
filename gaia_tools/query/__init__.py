@@ -26,9 +26,9 @@ def query(sql_query,local=False,timeit=False,use_cache=True,
        2018-05-02 - Written - Bovy (UofT)
     """
     if local and 'gaiadr2.' in sql_query:
-        sql_query= sql_query.replace('gaiadr2.','gdr2_')
+        sql_query= sql_query.replace('gaiadr2.','gaiadr2_')
     elif not local and 'gdr2_' in sql_query:
-        sql_query= sql_query.replace('gdr2_','gaiadr2.')
+        sql_query= sql_query.replace('gaiadr2_','gaiadr2.')
     if use_cache:
         out= query_cache.load(sql_query)
         if out: return out
