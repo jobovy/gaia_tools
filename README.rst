@@ -393,6 +393,19 @@ Bovy (2017).
 RECIPES
 ========
 
+Match APOGEE or APOGEE-RC to Gaia DR2
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We can do this with the `CDS xMatch Service <http://cdsxmatch.u-strasbg.fr/>`__ using the ``gaia_tools.xmatch.cds`` routine:
+
+    apogee_cat= gaia_tools.load.apogee()
+    gaia2_matches, matches_indx= gaia_tools.xmatch.cds(apogee_cat,xcat='vizier:I/345/gaia2')
+    apogee_cat= apogee_cat[matches_indx]
+    print(len(apogee_cat))
+    264423
+
+(takes about fifteen minutes). Make the first line ``apogee_cat= gaia_tools.load.apogeerc()`` for the APOGEE-rc catalog.
+
 Match RAVE to TGAS taking into account the epoch difference
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
