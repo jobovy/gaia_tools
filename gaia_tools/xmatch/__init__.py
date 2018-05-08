@@ -7,6 +7,7 @@ import warnings
 import subprocess
 import numpy
 import astropy.coordinates as acoords
+from astropy.table import Table
 from astropy import units as u
 
 def xmatch(cat1,cat2,maxdist=2,
@@ -73,7 +74,7 @@ def xmatch(cat1,cat2,maxdist=2,
 
 def cds(cat,xcat='vizier:I/345/gaia2',maxdist=2,colRA='RA',colDec='DEC',
         selection='best',epoch=2000.,colpmRA='pmra',colpmDec='pmdec',
-        savefilename=None):
+        savefilename=None,gaia_all_columns=False):
     """
     NAME:
        cds
@@ -89,6 +90,7 @@ def cds(cat,xcat='vizier:I/345/gaia2',maxdist=2,colRA='RA',colDec='DEC',
        epoch= (2000.) epoch of the coordinates in cat
        colpmRA= ('pmra') name of the tag in cat with the proper motion in right ascension in degree in cat (assumed to be ICRS; includes cos(Dec)) [only used when epoch != 2000.]
        colpmDec= ('pmdec') name of the tag in cat with the proper motion in declination in degree in cat (assumed to be ICRS) [only used when epoch != 2000.]
+       gaia_all_columns= (False) set to True if you are matching against Gaia DR2 and want *all* columns returned; this runs a query at the Gaia Archive, which may or may not work...
        savefilename= (None) if set, save the output from CDS to this path; can match back using cds_matchback
     OUTPUT:
        (xcat entries for those that match,
@@ -96,6 +98,7 @@ def cds(cat,xcat='vizier:I/345/gaia2',maxdist=2,colRA='RA',colDec='DEC',
     HISTORY:
        2016-09-12 - Written based on RC catalog code - Bovy (UofT)
        2016-09-21 - Account for Gaia epoch 2015 - Bovy (UofT)
+       2018-05-08 - Added gaia_all_columns - Bovy (UofT)
     """
     if 'ref_epoch' in cat.dtype.fields and numpy.fabs(epoch-2015.) > 0.01:
         warnings.warn("You appear to be using a Gaia catalog, but are not setting the epoch to 2015., which may lead to incorrect matches")
@@ -143,6 +146,29 @@ def cds(cat,xcat='vizier:I/345/gaia2',maxdist=2,colRA='RA',colDec='DEC',
     result.close()
     # Directly match on input RA
     ma= cds_load(resultfilename)
+    if gaia_all_columns:
+        from astroquery.gaia import Gaia
+        # Write another temporary file with the XML output of the cross-match
+        tab= Table(numpy.array([ma['source_id'],ma['RA'],ma['DEC']]).T,
+                   names=('source_id','RA','DEC'),
+                   dtype=('int64','float64','float64'))
+        xmlfilename= tempfile.mktemp('.xml',dir=os.getcwd())
+        tab.write(xmlfilename,format='votable')
+        try:
+            job= Gaia.launch_job_async(
+                """select g.*, m.RA as mRA, m.DEC as mDEC
+from gaiadr2.gaia_source as g 
+inner join tap_upload.my_table as m on m.source_id = g.source_id""",
+                                       upload_resource=xmlfilename,
+                                       upload_table_name="my_table")
+            ma= job.get_results()
+        except:
+            print("gaia_tools.xmath.cds failed to retrieve all gaiadr2 columns, returning just the default returned by the CDS xMatch instead...")
+        else:
+            ma.rename_column('mRA','RA')
+            ma.rename_column('mDEC','DEC')
+        finally:
+            os.remove(xmlfilename)
     # Remove temporary files
     os.remove(posfilename)
     if savefilename is None:
@@ -156,7 +182,8 @@ def cds(cat,xcat='vizier:I/345/gaia2',maxdist=2,colRA='RA',colDec='DEC',
 
 def cds_load(filename):
     return numpy.genfromtxt(filename,delimiter=',',skip_header=0,
-                            filling_values=-9999.99,names=True)
+                            filling_values=-9999.99,names=True,
+                            dtype='float128')
 
 def cds_matchback(cat,xcat,colRA='RA',colDec='DEC',selection='best',
                   epoch=2000.,colpmRA='pmra',colpmDec='pmdec',):
