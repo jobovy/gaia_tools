@@ -85,8 +85,8 @@ set the environment variables appropriate for that package.
 BASIC USE
 ==========
 
-Catalog reading and cross-matching
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Catalog reading
+^^^^^^^^^^^^^^^
 
 The basic use of the code is to read various data files and match them
 to each other. For example, to load the `TGAS <http://www.cosmos.esa.int/web/gaia/iow_20150115>`__ data, do::
@@ -137,6 +137,9 @@ or::
 
 for just the stars.
 
+Cross-matching
+^^^^^^^^^^^^^^
+
 To match catalogs to each other, use the tools in
 ``gaia_tools.xmatch``. For example, to match the GALAH and APOGEE-RC
 catalogs loaded above and compare the effective temperatures for the
@@ -167,7 +170,7 @@ cross-match the APOGEE-RC data and TGAS do::
 Further, it is possible to cross-match any catalog to the catalogs in
 the CDS database using the `CDS cross-matching service
 <http://cdsxmatch.u-strasbg.fr/xmatch>`__. For example, to match the
-GALAH catalog to the Gaia DR2catalog, do the following::
+GALAH catalog to the Gaia DR2 catalog, do the following::
 
    gaia2_matches, matches_indx= xmatch.cds(galah_cat,colRA='raj2000',colDec='dej2000',xcat='vizier:I/345/gaia2')
    print(galah_cat['raj2000'][matches_indx[0]],gaia2_matches['ra_epoch2000'][0],gaia2_matches['pmra'][matches_indx[0]],gaia2_matches['pmdec'][matches_indx[0]])
