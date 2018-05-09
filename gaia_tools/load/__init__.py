@@ -152,28 +152,16 @@ def galah(dr=2,xmatch=None,**kwargs):
     else:
         data= fitsread(filePath,1)
     if not xmatch is None:
-        if xmatch.lower() == 'gaiadr2' or xmatch.lower() == 'gaia2':
-            xmatch= 'vizier:I/345/gaia2'
-        maxdist= kwargs.pop('maxdist',2.)
-        # Check whether the cached x-match exists
-        xmatch_filename= xmatch_cache_filename(filePath,xmatch,maxdist)
-        if os.path.exists(xmatch_filename):
-            with open(xmatch_filename,'rb') as savefile:
-                ma= pickle.load(savefile)
-                mai= pickle.load(savefile)
+        if dr == 1  or dr == '1':
+            kwargs['colRA']= kwargs.get('colRA','RA')
+            kwargs['colDec']= kwargs.get('colDec','dec')
         else:
-            if dr == 1  or dr == '1':
-                colRA= kwargs.pop('colRA','RA')
-                colDec= kwargs.pop('colDec','dec')
-            else:
-                colRA= kwargs.pop('colRA','raj2000')
-                colDec= kwargs.pop('colDec','dej2000')
-            from gaia_tools.xmatch import cds
-            ma,mai= cds(data,xcat=xmatch,maxdist=maxdist,
-                        colRA=colRA,colDec=colDec,**kwargs)
-            save_pickles(xmatch_filename,ma,mai)
+            kwargs['colRA']= kwargs.pop('colRA','raj2000')
+            kwargs['colDec']= kwargs.pop('colDec','dej2000')
+        ma,mai= _xmatch_cds(xmatch,filePath,**kwargs)
         return (data[mai],ma)
-    return data
+    else:
+        return data
 
 def lamost(dr=2,cat='all'):
     """
@@ -259,6 +247,22 @@ def tgas(dr=1):
     return numpy.lib.recfunctions.stack_arrays(\
         [fitsread(filePath,ext=1) for filePath in filePaths],
         autoconvert=True)
+
+def _xmatch_cds(xcat,filePath,**kwargs):
+    if xcat.lower() == 'gaiadr2' or xcat.lower() == 'gaia2':
+        xcat= 'vizier:I/345/gaia2'
+    maxdist= kwargs.pop('maxdist',2.)
+    # Check whether the cached x-match exists
+    xmatch_filename= xmatch_cache_filename(filePath,xcat,maxdist)
+    if os.path.exists(xmatch_filename):
+        with open(xmatch_filename,'rb') as savefile:
+            ma= pickle.load(savefile)
+            mai= pickle.load(savefile)
+    else:
+        from gaia_tools.xmatch import cds
+        ma,mai= cds(data,xcat=xcat,maxdist=maxdist,**kwargs)
+        save_pickles(xmatch_filename,ma,mai)
+    return (ma,mai)
 
 def xmatch_cache_filename(filePath,xcat,maxdist):
     filename,fileExt= os.path.splitext(filePath)
