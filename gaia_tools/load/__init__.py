@@ -43,7 +43,7 @@ def apogee(**kwargs):
        read the APOGEE allStar file
     INPUT:
        IF the apogee package is not installed:
-           dr= (13) SDSS data release
+           dr= (14) SDSS data release
 
        ELSE you can use the same keywords as apogee.tools.read.allstar:
 
@@ -65,7 +65,7 @@ def apogee(**kwargs):
     """
     if not _APOGEE_LOADED:
         warnings.warn("Falling back on simple APOGEE interface; for more functionality, install the jobovy/apogee package")
-        dr= kwargs.get('dr',13)
+        dr= kwargs.get('dr',14)
         filePath= path.apogeePath(dr=dr)
         if not os.path.exists(filePath):
             download.apogee(dr=dr)
@@ -81,7 +81,7 @@ def apogeerc(**kwargs):
        read the APOGEE RC data
     INPUT:
        IF the apogee package is not installed:
-           dr= (13) SDSS data release
+           dr= (14) SDSS data release
 
        ELSE you can use the same keywords as apogee.tools.read.rcsample:
 
@@ -94,7 +94,7 @@ def apogeerc(**kwargs):
     """
     if not _APOGEE_LOADED:
         warnings.warn("Falling back on simple APOGEE interface; for more functionality, install the jobovy/apogee package")
-        dr= kwargs.get('dr',13)
+        dr= kwargs.get('dr',14)
         filePath= path.apogeercPath(dr=dr)
         if not os.path.exists(filePath):
             download.apogeerc(dr=dr)

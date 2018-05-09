@@ -22,7 +22,7 @@ def twomass(dr='tgas',verbose=True,spider=False):
             filePath,verbose=verbose,spider=spider)
     return None    
     
-def apogee(dr=13,verbose=True,spider=False):
+def apogee(dr=14,verbose=True,spider=False):
     filePath= path.apogeePath(dr=dr)
     if os.path.exists(filePath): return None
     if dr == 12:
@@ -33,9 +33,13 @@ def apogee(dr=13,verbose=True,spider=False):
         _download_file(\
             'https://data.sdss.org/sas/dr13/apogee/spectro/redux/r6/allStar-l30e.2.fits',
             filePath,verbose=verbose,spider=spider)
+    elif dr == 14:
+        _download_file(\
+            'https://data.sdss.org/sas/dr14/apogee/spectro/redux/r8/stars/l31c/l31c.2/allStar-l31c.2.fits',
+            filePath,verbose=verbose,spider=spider)
     return None    
     
-def apogeerc(dr=13,verbose=True,spider=False):
+def apogeerc(dr=14,verbose=True,spider=False):
     filePath= path.apogeercPath(dr=dr)
     if os.path.exists(filePath): return None
     _download_file(\

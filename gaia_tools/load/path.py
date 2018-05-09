@@ -14,15 +14,18 @@ def twomassPath(dr='tgas'):
     return os.path.join(_GAIA_TOOLS_DATA,'Gaia','gdr1','dstn_match',
                         'tgas-matched-2mass.fits.gz')
 
-def apogeePath(dr=13):
+def apogeePath(dr=14):
     if dr == 12:
         return os.path.join(_GAIA_TOOLS_DATA,'apogee','DR%i' % dr,
                             'allStar-v603.fits')
     elif dr == 13:
         return os.path.join(_GAIA_TOOLS_DATA,'apogee','DR%i' % dr,
                             'allStar-l30e.2.fits')
+    elif dr == 14:
+        return os.path.join(_GAIA_TOOLS_DATA,'apogee','DR%i' % dr,
+                            'allStar-l31c.2.fits')
 
-def apogeercPath(dr=13):
+def apogeercPath(dr=14):
     return os.path.join(_GAIA_TOOLS_DATA,'apogee','DR%i' % dr,
                         'apogee-rc-DR%i.fits' % dr)
 
