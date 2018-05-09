@@ -15,5 +15,6 @@ setup(name='gaia_tools',
                 'gaia_tools/xmatch','gaia_tools/select'],
       package_data={'gaia_tools/select':['2massc_hp5.txt'],
                     "": ["README.rst","LICENSE"]},
-      install_requires=['numpy','astropy','astroquery','tqdm','dateutil']
+      install_requires=['numpy','astropy','astroquery','tqdm',
+                        'python-dateutil']
       )
