@@ -12,7 +12,7 @@ setup(name='gaia_tools',
       url='https://github.com/jobovy/gaia_tools',
       package_dir = {'gaia_tools/': ''},
       packages=['gaia_tools','gaia_tools/load','gaia_tools/query',
-                'gaia_tools/xmatch','gaia_tools/select'],
+                'gaia_tools/xmatch','gaia_tools/select','gaia_tools/util'],
       package_data={'gaia_tools/select':['2massc_hp5.txt'],
                     "": ["README.rst","LICENSE"]},
       install_requires=['numpy','astropy','astroquery','tqdm','dateutil']

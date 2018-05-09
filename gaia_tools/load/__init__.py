@@ -1,5 +1,6 @@
 import os, os.path
 import warnings
+import pickle
 import numpy
 import numpy.lib.recfunctions
 import astropy.io.ascii
@@ -15,6 +16,7 @@ try:
 except (ImportError,RuntimeError): # RuntimeError if apogee env. not setup
     _APOGEE_LOADED= False
 from gaia_tools.load import path, download
+from gaia_tools.util import save_pickles
 def twomass(dr='tgas'):
     """
     NAME:
@@ -120,7 +122,7 @@ def gaiarv(dr=2):
         [fitsread(filePath,ext=1) for filePath in filePaths],
         autoconvert=True)
 
-def galah(dr=2):
+def galah(dr=2,xmatch=None,**kwargs):
     """
     NAME:
        galah
@@ -128,11 +130,14 @@ def galah(dr=2):
        Load the GALAH data
     INPUT:
        dr= (2) data release
+       xmatch= (None) if set, cross-match against a Vizier catalog (e.g., vizier:I/345/gaia2 for Gaia DR2) using gaia_tools.xmatch.cds and return the overlap
+       +gaia_tools.xmatch.cds keywords
     OUTPUT:
-       data table
+       data table[,xmatched table]
     HISTORY:
        2016-09-12 - Written - Bovy (UofT)
        2018-04-19 - Updated for DR2 - Bovy (UofT)
+       2018-05-08 - Add xmatch - Bovy (UofT)
     """
     if dr == 1 or dr == '1':
         filePath, ReadMePath= path.galahPath(dr=dr)
@@ -146,6 +151,28 @@ def galah(dr=2):
         data['dec']._fill_value= numpy.array([-9999.99])
     else:
         data= fitsread(filePath,1)
+    if not xmatch is None:
+        if xmatch.lower() == 'gaiadr2' or xmatch.lower() == 'gaia2':
+            xmatch= 'vizier:I/345/gaia2'
+        maxdist= kwargs.pop('maxdist',2.)
+        # Check whether the cached x-match exists
+        xmatch_filename= xmatch_cache_filename(filePath,xmatch,maxdist)
+        if os.path.exists(xmatch_filename):
+            with open(xmatch_filename,'rb') as savefile:
+                ma= pickle.load(savefile)
+                mai= pickle.load(savefile)
+        else:
+            if dr == 1  or dr == '1':
+                colRA= kwargs.pop('colRA','RA')
+                colDec= kwargs.pop('colDec','dec')
+            else:
+                colRA= kwargs.pop('colRA','raj2000')
+                colDec= kwargs.pop('colDec','dej2000')
+            from gaia_tools.xmatch import cds
+            ma,mai= cds(data,xcat=xmatch,maxdist=maxdist,
+                        colRA=colRA,colDec=colDec,**kwargs)
+            save_pickles(xmatch_filename,ma,mai)
+        return (data[mai],ma)
     return data
 
 def lamost(dr=2,cat='all'):
@@ -233,4 +260,8 @@ def tgas(dr=1):
         [fitsread(filePath,ext=1) for filePath in filePaths],
         autoconvert=True)
 
+def xmatch_cache_filename(filePath,xcat,maxdist):
+    filename,fileExt= os.path.splitext(filePath)
+    cachePath= filename+'_xmatch_{}_maxdist_{:.2f}'.format(xcat.replace('/','_').replace(':','_'),maxdist)+'.pkl'
+    return cachePath
     
