@@ -165,8 +165,8 @@ inner join tap_upload.my_table as m on m.source_id = g.source_id""",
         except:
             print("gaia_tools.xmath.cds failed to retrieve all gaiadr2 columns, returning just the default returned by the CDS xMatch instead...")
         else:
-            ma.rename_column('mRA','RA')
-            ma.rename_column('mDEC','DEC')
+            ma.rename_column('mra','RA')
+            ma.rename_column('mdec','DEC')
         finally:
             os.remove(xmlfilename)
     # Remove temporary files
