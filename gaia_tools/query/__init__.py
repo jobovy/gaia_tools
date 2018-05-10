@@ -3,7 +3,6 @@ import time
 import numpy
 from astropy.table import Table
 from astroquery.gaia import Gaia
-import psycopg2
 from gaia_tools.query import cache as query_cache
 query_cache.autoclean()
 
@@ -34,6 +33,7 @@ def query(sql_query,local=False,timeit=False,use_cache=True,
         out= query_cache.load(sql_query)
         if out: return out
     if local:
+        import psycopg2
         conn= psycopg2.connect("dbname={} user={}".format(dbname,user))
         cur= conn.cursor()
         if timeit: start= time.time()
