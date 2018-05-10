@@ -52,8 +52,9 @@ This package requires `NumPy <http://www.numpy.org/>`__, `astropy
 <http://www.astropy.org/>`__, `astroquery
 <https://astroquery.readthedocs.io/en/latest/>`__, `tqdm
 <https://github.com/noamraph/tqdm>`__, and `dateutil
-<https://dateutil.readthedocs.io>`__. Additionally, some functions
-require `Scipy <http://www.scipy.org/>`__ and `galpy
+<https://dateutil.readthedocs.io>`__. The query functions require
+`psycopg2 <https://pypi.org/project/psycopg2/>`__. Additionally, some
+functions require `Scipy <http://www.scipy.org/>`__ and `galpy
 <https://github.com/jobovy/galpy>`__. The selection-function code
 requires `healpy <https://github.com/healpy/healpy>`__ (most
 conveniently installed using ``conda``); the
