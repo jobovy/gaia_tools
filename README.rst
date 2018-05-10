@@ -117,7 +117,10 @@ various APOGEE data files, for example::
 
 If you don't have the `apogee <https://github.com/jobovy/apogee>`__
 package installed, the code will still download the data, but less
-options for slicing the catalog are available. The `GALAH`, `apogee`, and `apogeerc` catalog can also be cross-matched to Gaia DR2 upon loading, e.g., as::
+options for slicing the catalog are available. 
+
+The ``GALAH``, ``apogee``, and ``apogeerc`` catalog can also be
+cross-matched to Gaia DR2 upon loading, e.g., as::
 
   rc_cat, gaia2_matches= gload.apogeerc(xmatch='gaiadr2')
 
@@ -132,7 +135,9 @@ with that option, that result will be saved, otherwise not; the cached
 result will be returned regardless of the value of
 ``gaia_all_columns`` in the call (remove the cached file to re-do the
 cross-match; the cached file is in the same directory as the data
-file; see ``gaia_tools.load.path``).
+file; see ``gaia_tools.load.path``). This cross-matching capability is
+not implemented for the next catalogs at the time of writing. Note
+that cross-matching can take more than an hour.
 
 Similarly, you can load the `RAVE
 <https://www.rave-survey.org/project/>`__ and `RAVE-on
