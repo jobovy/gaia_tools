@@ -60,7 +60,10 @@ def galah(dr=2,verbose=True,spider=False):
         _download_file(\
             'https://cloudstor.aarnet.edu.au/plus/index.php/s/OMc9QWGG1koAK2D/download?path=%2F&files=ReadMe',
             ReadMePath,verbose=verbose,spider=spider)
-    else:
+    elif dr == 2 or dr == '2' or dr == 2.1 or dr == '2.1':
+        # GALAH updated catalog May 10 2018; remove catalog downloaded before
+        if os.path.exists(filePath.replace('DR2.1','DR2')):
+            os.remove(filePath.replace('DR2.1','DR2'))
         _download_file(\
           os.path.join('https://datacentral.aao.gov.au/teamdata/GALAH/public/',
                        os.path.basename(filePath)),

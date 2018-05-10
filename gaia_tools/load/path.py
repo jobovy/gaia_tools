@@ -71,9 +71,9 @@ def galahPath(dr=2):
         return (os.path.join(_GAIA_TOOLS_DATA,'galah','DR%i' % dr,
                              'catalog.dat'),
                 os.path.join(_GAIA_TOOLS_DATA,'galah','DR%i' % dr,'ReadMe'))
-    elif dr == 2 or dr == '2':
+    elif dr == 2 or dr == '2' or dr == 2.1 or dr == '2.1':
         return os.path.join(_GAIA_TOOLS_DATA,'galah','DR%i' % int(dr),
-                            'GALAH_DR2_catalog.fits')
+                            'GALAH_DR2.1_catalog.fits')
 
 def lamostPath(dr=2,cat='all'):
     if cat.lower() == 'all':
