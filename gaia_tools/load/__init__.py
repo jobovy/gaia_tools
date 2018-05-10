@@ -37,7 +37,7 @@ def twomass(dr='tgas'):
         download.twomass(dr=dr)
     return fitsread(filePath,1)
 
-def apogee(**kwargs):
+def apogee(xmatch=None,**kwargs):
     """
     PURPOSE:
        read the APOGEE allStar file
@@ -58,10 +58,16 @@ def apogee(**kwargs):
        distredux= (default: DR default) reduction on which the distances are based
        rmdups= (False) if True, remove duplicates (very slow)
        raw= (False) if True, just return the raw file, read w/ fitsio
+    
+       ALWAYS ALSO
+
+       xmatch= (None) if set, cross-match against a Vizier catalog (e.g., vizier:I/345/gaia2 for Gaia DR2) using gaia_tools.xmatch.cds and return the overlap
+       +gaia_tools.xmatch.cds keywords
     OUTPUT:
-       allStar data
+       allStar data[,xmatched table]
     HISTORY:
        2013-09-06 - Written - Bovy (IAS)
+       2018-05-09 - Add xmatch - Bovy (UofT)
     """
     if not _APOGEE_LOADED:
         warnings.warn("Falling back on simple APOGEE interface; for more functionality, install the jobovy/apogee package")
@@ -69,11 +75,17 @@ def apogee(**kwargs):
         filePath= path.apogeePath(dr=dr)
         if not os.path.exists(filePath):
             download.apogee(dr=dr)
-        return fitsread(filePath,1)
+        data= fitsread(filePath,1)
+        if not xmatch is None:
+            ma,mai= _xmatch_cds(data,xmatch,filePath,**kwargs)
+            return (data[mai],ma)
+        else:
+            return data
     else:
+        kwargs['xmatch']= xmatch
         return apread.allStar(**kwargs)
 
-def apogeerc(**kwargs):
+def apogeerc(xmatch=None,**kwargs):
     """
     NAME:
        apogeerc
@@ -87,10 +99,16 @@ def apogeerc(**kwargs):
 
        main= (default: False) if True, only select stars in the main survey
        dr= data reduction to load the catalog for (automatically set based on APOGEE_REDUX if not given explicitly)
+
+       ALWAYS ALSO
+
+       xmatch= (None) if set, cross-match against a Vizier catalog (e.g., vizier:I/345/gaia2 for Gaia DR2) using gaia_tools.xmatch.cds and return the overlap
+       +gaia_tools.xmatch.cds keywords
     OUTPUT:
-       APOGEE RC sample data
+       APOGEE RC sample data[,xmatched table]
     HISTORY:
        2013-10-08 - Written - Bovy (IAS)
+       2018-05-09 - Add xmatch - Bovy (UofT)
     """
     if not _APOGEE_LOADED:
         warnings.warn("Falling back on simple APOGEE interface; for more functionality, install the jobovy/apogee package")
@@ -98,8 +116,14 @@ def apogeerc(**kwargs):
         filePath= path.apogeercPath(dr=dr)
         if not os.path.exists(filePath):
             download.apogeerc(dr=dr)
-        return fitsread(filePath,1)
+        data= fitsread(filePath,1)
+        if not xmatch is None:
+            ma,mai= _xmatch_cds(data,xmatch,filePath,**kwargs)
+            return (data[mai],ma)
+        else:
+            return data
     else:
+        kwargs['xmatch']= xmatch
         return apread.rcsample(**kwargs)
   
 def gaiarv(dr=2):
@@ -158,7 +182,7 @@ def galah(dr=2,xmatch=None,**kwargs):
         else:
             kwargs['colRA']= kwargs.pop('colRA','raj2000')
             kwargs['colDec']= kwargs.pop('colDec','dej2000')
-        ma,mai= _xmatch_cds(xmatch,filePath,**kwargs)
+        ma,mai= _xmatch_cds(data,xmatch,filePath,**kwargs)
         return (data[mai],ma)
     else:
         return data
@@ -248,7 +272,7 @@ def tgas(dr=1):
         [fitsread(filePath,ext=1) for filePath in filePaths],
         autoconvert=True)
 
-def _xmatch_cds(xcat,filePath,**kwargs):
+def _xmatch_cds(data,xcat,filePath,**kwargs):
     if xcat.lower() == 'gaiadr2' or xcat.lower() == 'gaia2':
         xcat= 'vizier:I/345/gaia2'
     maxdist= kwargs.pop('maxdist',2.)
