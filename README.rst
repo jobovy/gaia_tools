@@ -117,7 +117,22 @@ various APOGEE data files, for example::
 
 If you don't have the `apogee <https://github.com/jobovy/apogee>`__
 package installed, the code will still download the data, but less
-options for slicing the catalog are available.
+options for slicing the catalog are available. The `GALAH`, `apogee`, and `apogeerc` catalog can also be cross-matched to Gaia DR2 upon loading, e.g., as::
+
+  rc_cat, gaia2_matches= gload.apogeerc(xmatch='gaiadr2')
+
+through an interface to the ``gaia_tools.xmatch.cds`` function
+described below (keywords of that function can be specified here as
+well). This will return only the stars in the overlap of the two
+catalogs. The results from the cross-match are cached such that this
+function will run much faster the second time if run with the same
+parameters. Note that the caching ignores the option
+``gaia_all_columns`` described below; if you first do the cross-match
+with that option, that result will be saved, otherwise not; the cached
+result will be returned regardless of the value of
+``gaia_all_columns`` in the call (remove the cached file to re-do the
+cross-match; the cached file is in the same directory as the data
+file; see ``gaia_tools.load.path``).
 
 Similarly, you can load the `RAVE
 <https://www.rave-survey.org/project/>`__ and `RAVE-on
@@ -175,6 +190,13 @@ GALAH catalog to the Gaia DR2 catalog, do the following::
    gaia2_matches, matches_indx= xmatch.cds(galah_cat,colRA='raj2000',colDec='dej2000',xcat='vizier:I/345/gaia2')
    print(galah_cat['raj2000'][matches_indx[0]],gaia2_matches['ra_epoch2000'][0],gaia2_matches['pmra'][matches_indx[0]],gaia2_matches['pmdec'][matches_indx[0]])
    (0.00047,0.00049021022,22.319,-10.229)
+
+If you want *all* columns in Gaia DR2, specify
+``gaia_all_columns=True``. This will first run the CDS cross-match,
+then upload the result to the Gaia Archive, and join to the
+``gaia_source`` table to return all columns. If the Gaia Archive
+cannot be reached for some reason, the limited subset of columns
+returned by CDS is returned instead.
 
 If you want to download a catalog from CDS, you can use
 ``gaia_tools.load.download.vizier``.
