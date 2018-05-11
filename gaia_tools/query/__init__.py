@@ -6,7 +6,7 @@ from astroquery.gaia import Gaia
 from gaia_tools.query import cache as query_cache
 query_cache.autoclean()
 
-def query(sql_query,local=False,timeit=False,use_cache=True,
+def query(sql_query,local=False,timeit=False,use_cache=True,verbose=False,
           dbname='catalogs',user='postgres'):
     """
     NAME:
@@ -18,6 +18,7 @@ def query(sql_query,local=False,timeit=False,use_cache=True,
        local= (False) if True, run the query on a local postgres database
        timeit= (False) if True, print how long the query ran
        use_cache= (True) if True use the query cache (load from the cache if exists, store to the cache for reuse otherwise)
+       verbose= (False) if True, up verbosity level
        dbname= ('catalogs') if local, the name of the postgres database
        user= ('postgres') if local, the name of the postgres user
     OUTPUT:
@@ -46,7 +47,7 @@ def query(sql_query,local=False,timeit=False,use_cache=True,
         out= Table(numpy.array(out),names=names)
     else:
         if timeit: start= time.time()
-        job= Gaia.launch_job_async(sql_query)
+        job= Gaia.launch_job_async(sql_query,verbose=verbose)
         if timeit: print("Query took {:.3f} s".format(time.time()-start))
         out= job.get_results()
     if use_cache:
