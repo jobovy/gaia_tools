@@ -3,6 +3,7 @@ import os, os.path
 import datetime
 import glob
 import hashlib
+import shutil
 import pickle
 import dateutil.parser
 from gaia_tools.util import save_pickles
@@ -83,6 +84,29 @@ def load(sql_query):
                 results= pickle.load(savefile)
             return results
     return False
+
+def nickname(sql_query,nick):
+    """
+    NAME:
+       nickname
+    PURPOSE:
+       give a hashed-query a nickname, meaning that it does not get cleaned by cache.clean
+    INPUT:
+       sql_query - the text of the query
+       nick - nickname (string)
+    OUTPUT:
+       True if the file existed and it was moved, False if not
+    HISTORY:
+       2018-05-17 - Written - Bovy (UofT)
+    """
+    new_path= os.path.join(_CACHE_DIR,'{}_{}.pkl'.format(nickname,\
+                      hashlib.md5(sql_query.encode('utf-8')).hexdigest()))
+    old_path= file_path(sql_query)
+    if os.path.exists(old_path):
+        shutil.move(old_path,new_path)
+        return True
+    else:
+        return False
 
 def cleanall():
     return clean(all=True)
