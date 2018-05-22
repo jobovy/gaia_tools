@@ -99,7 +99,7 @@ def nickname(sql_query,nick):
     HISTORY:
        2018-05-17 - Written - Bovy (UofT)
     """
-    new_path= os.path.join(_CACHE_DIR,'{}_{}.pkl'.format(nickname,\
+    new_path= os.path.join(_CACHE_DIR,'{}_{}.pkl'.format(nick,\
                       hashlib.md5(sql_query.encode('utf-8')).hexdigest()))
     old_path= file_path(sql_query)
     if os.path.exists(old_path):
