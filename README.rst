@@ -254,6 +254,21 @@ note that without the additional ``and random_index between 0 and
 1000000`` the query will likely time out on the Gaia Archive; this is
 one reason to have a local copy!)
 
+Similarly, ``query.query`` can automatically translate queries that
+join against the 2MASS catalog. For example, the query::
+
+  twomass_query= """SELECT gaia.source_id,gaia.bp_rp, gaia.phot_bp_mean_mag as bp, gaia.phot_rp_mean_mag as rp, 
+  gaia.phot_g_mean_mag as g, tmass.j_m as j, tmass.h_m as h, tmass.ks_m as k
+  FROM gaiadr2.gaia_source AS gaia 
+  INNER JOIN gaiadr2.tmass_best_neighbour AS tmass_match ON tmass_match.source_id = gaia.source_id
+  INNER JOIN gaiadr1.tmass_original_valid AS tmass ON tmass.tmass_oid = tmass_match.tmass_oid
+  WHERE gaia.random_index < 1000000
+  and gaia.phot_g_mean_mag < 13.;"""
+
+can be run locally. For this to work, the two ``INNER JOIN`` lines in
+this query need to be exactly as written here (thus, you need to call
+the 2MASS table ``tmass``).
+
 ``query.query`` by default also maintains a cache of queries run
 previously. That is, if you run the exact same query a second time,
 the cached result is returned rather than re-running the query (which
