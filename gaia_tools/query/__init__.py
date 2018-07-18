@@ -1,4 +1,5 @@
 # gaia_tools.query: some helper functions for querying the Gaia database
+import re
 import time
 import numpy
 from astropy.table import Table
@@ -28,8 +29,10 @@ def query(sql_query,local=False,timeit=False,use_cache=True,verbose=False,
     """
     if local and 'gaiadr2.' in sql_query:
         sql_query= sql_query.replace('gaiadr2.','gaiadr2_')
-    elif not local and 'gdr2_' in sql_query:
+    elif not local and 'gaiadr2_' in sql_query:
         sql_query= sql_query.replace('gaiadr2_','gaiadr2.')
+    if local: # Other changes necessary for using the local database
+        sql_query= _localize(sql_query)
     if use_cache:
         out= query_cache.load(sql_query)
         if out: return out
@@ -54,3 +57,17 @@ def query(sql_query,local=False,timeit=False,use_cache=True,verbose=False,
         query_cache.save(sql_query,out)
     return out
 
+def _localize(sql_query):
+    # Figure out what the 'gaia' table is called in the query
+    gaia_tablename= 'gaia'
+    re_out= re.search(r"(?<=(FROM|from) gaiadr2(.|_)gaia_source AS ).*?(?=\s)",sql_query)
+    try:
+        gaia_tablename= re_out.group(0)
+    except AttributeError: pass
+    # Are we matching to 2mass?
+    tmass_join_str= """INNER JOIN gaiadr2_tmass_best_neighbour AS tmass_match ON tmass_match.source_id = {}.source_id
+INNER JOIN gaiadr1.tmass_original_valid AS tmass ON tmass.tmass_oid = tmass_match.tmass_oid""".format(gaia_tablename)
+    if tmass_join_str in sql_query:
+        sql_query= sql_query.replace(tmass_join_str,
+                               """INNER JOIN gaiadr2_tmass_best_neighbour as tmass ON tmass.source_id = {}.source_id""".format(gaia_tablename))
+    return sql_query
