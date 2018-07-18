@@ -1,0 +1,22 @@
+SET default_transaction_read_only= false;
+CREATE TABLE gaiadr2_tmass_best_neighbour (
+    source_id bigint,
+    original_ext_source_id varchar,
+    angular_distance double precision,
+    gaia_astrometric_params smallint,
+    tmass_oid bigint,
+    number_of_neighbours int,
+    number_of_mates smallint,
+    best_neighbour_multiplicity smallint,
+    designation varchar,
+    ra double precision,
+    dec  double precision,
+    j_m double precision,
+    j_msigcom double precision,
+    h_m double precision,
+    h_msigcom double precision,
+    ks_m double precision,
+    k_msigcom double precision,
+    ext_key bigint,
+    ph_qual varchar
+) WITHOUT OIDS;
