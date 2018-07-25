@@ -70,4 +70,10 @@ INNER JOIN gaiadr1.tmass_original_valid AS tmass ON tmass.tmass_oid = tmass_matc
     if tmass_join_str in sql_query:
         sql_query= sql_query.replace(tmass_join_str,
                                """INNER JOIN gaiadr2_tmass_best_neighbour as tmass ON tmass.source_id = {}.source_id""".format(gaia_tablename))
+    # Are we matching to PanSTARRS1?
+    panstarrs1_join_str= """INNER JOIN gaiadr2_panstarrs1_best_neighbour AS panstarrs1_match ON panstarrs1_match.source_id = {}.source_id
+INNER JOIN gaiadr2_panstarrs1_original_valid AS panstarrs1 ON panstarrs1.obj_id = panstarrs1_match.original_ext_source_id""".format(gaia_tablename)
+    if panstarrs1_join_str in sql_query:
+        sql_query= sql_query.replace(panstarrs1_join_str,
+                               """INNER JOIN gaiadr2_panstarrs1_best_neighbour as panstarrs1 ON panstarrs1.source_id = {}.source_id""".format(gaia_tablename))
     return sql_query
