@@ -269,6 +269,21 @@ can be run locally. For this to work, the two ``INNER JOIN`` lines in
 this query need to be exactly as written here (thus, you need to call
 the 2MASS table ``tmass``).
 
+Similarly, ``query.query`` can automatically translate queries that
+join against the PanSTARRS1 catalog. For example, the query::
+
+  panstarrs_query= """SELECT gaia.source_id,gaia.bp_rp, gaia.phot_bp_mean_mag as bp, gaia.phot_rp_mean_mag as rp, 
+  gaia.phot_g_mean_mag as g, panstarrs1.g_mean_psf_mag as pg, panstarrs1.r_mean_psf_mag as pr
+  FROM gaiadr2.gaia_source AS gaia 
+  INNER JOIN gaiadr2.panstarrs1_best_neighbour AS panstarrs1_match ON panstarrs1_match.source_id = gaia.source_id
+  INNER JOIN gaiadr2.panstarrs1_original_valid AS panstarrs1 ON panstarrs1.obj_id = panstarrs1_match.original_ext_source_id
+  WHERE gaia.random_index < 100000
+  and gaia.phot_g_mean_mag < 13.;"""
+
+can be run locally. Again, for this to work, the two ``INNER JOIN``
+lines in this query need to be exactly as written here (thus, you need
+to call the PanSTARRS1 table ``panstarrs1``).
+
 ``query.query`` by default also maintains a cache of queries run
 previously. That is, if you run the exact same query a second time,
 the cached result is returned rather than re-running the query (which
