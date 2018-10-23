@@ -44,6 +44,7 @@ def apogee(xmatch=None,**kwargs):
     INPUT:
        IF the apogee package is not installed:
            dr= (14) SDSS data release
+           use_astroNN= (False) if True, swap in astroNN (Leung & Bovy 2018) parameters (get placed in, e.g., TEFF and TEFF_ERR)
 
        ELSE you can use the same keywords as apogee.tools.read.allstar:
 
@@ -76,6 +77,11 @@ def apogee(xmatch=None,**kwargs):
         if not os.path.exists(filePath):
             download.apogee(dr=dr)
         data= fitsread(filePath,1)
+        #Add astroNN? astroNN file matched line-by-line to allStar, 
+        #so match here   
+        if kwargs.get('use_astroNN',False) or kwargs.get('astroNN',False):
+            astroNNdata= astroNN()
+            data= _swap_in_astroNN(data,astroNNdata)
         if not xmatch is None:
             ma,mai= _xmatch_cds(data,xmatch,filePath,**kwargs)
             return (data[mai],ma)
@@ -117,6 +123,17 @@ def apogeerc(xmatch=None,**kwargs):
         if not os.path.exists(filePath):
             download.apogeerc(dr=dr)
         data= fitsread(filePath,1)
+        # Swap in astroNN results?
+        if kwargs.get('use_astroNN',False) or kwargs.get('astroNN',False):
+            astroNNdata= astroNN()
+            # Match on (ra,dec)
+            from gaia_tools.xmatch import xmatch as gxmatch
+            m1,m2,_= gxmatch(data,astroNNdata,maxdist=2.,
+                             colRA1='RA',colDec1='DEC',epoch1=2000.,
+                             colRA2='RA',colDec2='DEC',epoch2=2000.)
+            data= data[m1]
+            astroNNdata= astroNNdata[m2]
+            data= _swap_in_astroNN(data,astroNNdata)
         if not xmatch is None:
             ma,mai= _xmatch_cds(data,xmatch,filePath,**kwargs)
             return (data[mai],ma)
@@ -126,6 +143,30 @@ def apogeerc(xmatch=None,**kwargs):
         kwargs['xmatch']= xmatch
         return apread.rcsample(**kwargs)
   
+def astroNN(**kwargs):
+    """
+    NAME:
+       astroNN
+    PURPOSE:
+       read the astroNN file
+    INPUT:
+       dr= data reduction to load the catalog for (automatically set based on APOGEE_REDUX if not given explicitly)
+    OUTPUT:
+       astroNN data
+    HISTORY:
+       2018-10-20 - Written - Bovy (UofT)
+    """
+    if not _APOGEE_LOADED:
+        warnings.warn("Falling back on simple APOGEE interface; for more functionality, install the jobovy/apogee package")
+        dr= kwargs.get('dr',14)
+        filePath= path.astroNNPath(dr=dr)
+        if not os.path.exists(filePath):
+            download.astroNN(dr=dr)
+        data= fitsread(filePath,1)
+        return data
+    else:
+        return apread.astroNN(**kwargs)
+
 def gaiarv(dr=2):
     """
     NAME:
@@ -293,3 +334,40 @@ def xmatch_cache_filename(filePath,xcat,maxdist):
     cachePath= filename+'_xmatch_{}_maxdist_{:.2f}'.format(xcat.replace('/','_').replace(':','_'),maxdist)+'.pkl'
     return cachePath
     
+# Support to swap in astroNN into the APOGEE data
+def _elemIndx(elem,dr=14):
+    """Version of apogee.tools.elemIndx for internal use here, not as general"""
+    if dr == 14:
+        _ELEM_SYMBOL= ['c','ci','n','o','na','mg','al','si','p','s','k','ca',
+                       'ti','tiii','v','cr','mn','fe','co','ni','cu','ge','ce',
+                       'rb','y','nd']
+    else:
+        raise ValueError('The functionality you are attempting to use is only available for APOGEE DR14')
+    try:
+        return _ELEM_SYMBOL.index(elem.lower())
+    except ValueError:
+        raise KeyError("Element %s is not part of the APOGEE elements (can't do everything!) or something went wrong)" % elem)
+
+def _swap_in_astroNN(data,astroNNdata):
+    for tag,indx in zip(['TEFF','LOGG'],[0,1]):
+        data[tag]= astroNNdata['astroNN'][:,indx]
+        data[tag+'_ERR']= astroNNdata['astroNN_error'][:,indx]
+    for tag,indx in zip(['C','CI','N','O','Na','Mg','Al','Si','P','S','K',
+                         'Ca','Ti','TiII','V','Cr','Mn','Fe','Co','Ni'],
+                        range(2,22)):
+        data['X_H'][:,_elemIndx(tag.upper())]=\
+            astroNNdata['astroNN'][:,indx]
+        data['X_H_ERR'][:,_elemIndx(tag.upper())]=\
+            astroNNdata['astroNN_error'][:,indx]
+        if tag.upper() != 'FE':
+            data['{}_FE'.format(tag.upper())]=\
+                astroNNdata['astroNN'][:,indx]-astroNNdata['astroNN'][:,19]
+            data['{}_FE_ERR'.format(tag.upper())]=\
+                numpy.sqrt(astroNNdata['astroNN_error'][:,indx]**2.
+                           +astroNNdata['astroNN_error'][:,19]**2.)
+        else:
+            data['FE_H'.format(tag.upper())]=\
+                        astroNNdata['astroNN'][:,indx]
+            data['FE_H_ERR'.format(tag.upper())]=\
+                astroNNdata['astroNN_error'][:,indx]
+    return data

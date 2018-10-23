@@ -29,6 +29,13 @@ def apogeercPath(dr=14):
     return os.path.join(_GAIA_TOOLS_DATA,'apogee','DR%i' % dr,
                         'apogee-rc-DR%i.fits' % dr)
 
+def astroNNPath(dr=14):
+    if dr == 14:
+        return os.path.join(_GAIA_TOOLS_DATA,'apogee','DR%i' % dr,
+                            'astroNN_apogee_dr14_catalog.fits')
+    else:
+        raise ValueError('astroNN catalog for DR =/= 14 not available')
+
 def gaiarvPath(dr=2,format='fits'):
     if format == 'csv': extension= 'csv.gz'
     else: extension= format
