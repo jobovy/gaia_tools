@@ -118,7 +118,14 @@ various APOGEE data files, for example::
 
 If you don't have the `apogee <https://github.com/jobovy/apogee>`__
 package installed, the code will still download the data, but less
-options for slicing the catalog are available. 
+options for slicing the catalog are available. If you are using APOGEE
+DR14 and want to use the (less noisy) parameters and abundances
+derived using the `astroNN
+<https://github.com/henrysky/astroNN_spectra_paper_figures>`__ method
+of `Leung & Bovy (2018) <https://arxiv.org/abs/1808.04428>`__, do::
+
+   apogee_cat= gload.apogee(use_astroNN=True)
+   rc_cat= gload.apogeerc(use_astroNN=True)
 
 The ``GALAH``, ``apogee``, and ``apogeerc`` catalog can also be
 cross-matched to Gaia DR2 upon loading, e.g., as::
