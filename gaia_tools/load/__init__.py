@@ -83,6 +83,8 @@ def apogee(xmatch=None,**kwargs):
             astroNNdata= astroNN()
             data= _swap_in_astroNN(data,astroNNdata)
         if not xmatch is None:
+            kwargs.pop('use_astroNN',False)
+            kwargs.pop('astroNN',False)
             ma,mai= _xmatch_cds(data,xmatch,filePath,**kwargs)
             return (data[mai],ma)
         else:
@@ -135,7 +137,13 @@ def apogeerc(xmatch=None,**kwargs):
             astroNNdata= astroNNdata[m2]
             data= _swap_in_astroNN(data,astroNNdata)
         if not xmatch is None:
-            ma,mai= _xmatch_cds(data,xmatch,filePath,**kwargs)
+            if kwargs.get('use_astroNN',False) or kwargs.get('astroNN',False):
+                matchFilePath= filePath.replace('rc-','rc-astroNN-')
+            else:
+                matchFilePath= filePath
+            kwargs.pop('use_astroNN',False)
+            kwargs.pop('astroNN',False)           
+            ma,mai= _xmatch_cds(data,xmatch,matchFilePath,**kwargs)
             return (data[mai],ma)
         else:
             return data
