@@ -1,10 +1,14 @@
 # Tools for cross-matching catalogs
-import os, os.path
 import csv
+import os
+import os.path
+import platform
 import shutil
+import subprocess
 import tempfile
 import warnings
-import subprocess
+
+WIN32= platform.system() == 'Windows'
 import numpy
 import astropy.coordinates as acoords
 from astropy.table import Table
@@ -181,9 +185,25 @@ inner join tap_upload.my_table as m on m.source_id = g.source_id""",
     return (ma,mai)
 
 def cds_load(filename):
-    return numpy.genfromtxt(filename,delimiter=',',skip_header=0,
-                            filling_values=-9999.99,names=True,
-                            dtype='float128')
+    if WIN32:
+        # windows do not have float128, but source_id is double
+        # get around this by squeezing precision from int64 on source_id as source_id is always integer anyway
+        # first read everything as fp64 and then convert source_id to int64 will keep its precision
+        data = numpy.genfromtxt(filename, delimiter=',', skip_header=0,
+                                filling_values=-9999.99, names=True, max_rows=1,
+                                dtype='float64')  # only read the first row max to reduce workload to just get the column name
+        to_list = list(data.dtype.names)
+        # construct a list where everything is fp64 except 'source_id' being int64
+        dtype_list = [('{}'.format(i), numpy.float64) for i in to_list]
+        dtype_list[dtype_list.index(('source_id', numpy.float64))] = ('source_id', numpy.uint64)
+
+        return numpy.genfromtxt(filename, delimiter=',', skip_header=0,
+                                filling_values=-9999.99, names=True,
+                                dtype=dtype_list)
+    else:
+        return numpy.genfromtxt(filename, delimiter=',', skip_header=0,
+                                filling_values=-9999.99, names=True,
+                                dtype='float128')
 
 def cds_matchback(cat,xcat,colRA='RA',colDec='DEC',selection='best',
                   epoch=2000.,colpmRA='pmra',colpmDec='pmdec',):

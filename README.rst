@@ -469,7 +469,7 @@ RECIPES
 Match APOGEE or APOGEE-RC to Gaia DR2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-We can do this with the `CDS xMatch Service <http://cdsxmatch.u-strasbg.fr/>`__ using the ``gaia_tools.xmatch.cds`` routine:
+We can do this with the `CDS xMatch Service <http://cdsxmatch.u-strasbg.fr/>`__ using the ``gaia_tools.xmatch.cds`` routine::
 
     apogee_cat= gaia_tools.load.apogee()
     gaia2_matches, matches_indx= gaia_tools.xmatch.cds(apogee_cat,xcat='vizier:I/345/gaia2')
