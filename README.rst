@@ -17,6 +17,7 @@ AUTHORS
 
 with contributions from
 
+ * Henry Leung
  * Miguel de Val-Borro
  * Simon Walker
 
