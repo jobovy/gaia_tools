@@ -197,8 +197,6 @@ def cds_load(filename):
         dtype_list = [('{}'.format(i), numpy.float64) for i in to_list]
         dtype_list[dtype_list.index(('source_id', numpy.float64))] = ('source_id', numpy.uint64)
 
-        print(dtype_list)
-
         return numpy.genfromtxt(filename, delimiter=',', skip_header=0,
                                 filling_values=-9999.99, names=True,
                                 dtype=dtype_list)
