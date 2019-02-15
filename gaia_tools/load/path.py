@@ -36,6 +36,13 @@ def astroNNPath(dr=14):
     else:
         raise ValueError('astroNN catalog for DR =/= 14 not available')
 
+def astroNNDistancesPath(dr=14):
+    if dr == 14:
+        return os.path.join(_GAIA_TOOLS_DATA,'apogee','DR%i' % dr,
+                            'apogee_dr14_nn_dist.fits')
+    else:
+        raise ValueError('astroNN distances catalog for DR =/= 14 not available')
+
 def gaiarvPath(dr=2,format='fits'):
     if format == 'csv': extension= 'csv.gz'
     else: extension= format

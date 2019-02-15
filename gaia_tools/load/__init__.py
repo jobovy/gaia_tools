@@ -44,7 +44,7 @@ def apogee(xmatch=None,**kwargs):
     INPUT:
        IF the apogee package is not installed:
            dr= (14) SDSS data release
-           use_astroNN= (False) if True, swap in astroNN (Leung & Bovy 2018) parameters (get placed in, e.g., TEFF and TEFF_ERR)
+           use_astroNN= (False) if True, swap in astroNN (Leung & Bovy 2019a) parameters (get placed in, e.g., TEFF and TEFF_ERR) and add astroNN distances (Leung & Bovy 2019b); use 'use_astroNN_abundances' and 'use_astroNN_distances' to only add abundances or distances, respectively
 
        ELSE you can use the same keywords as apogee.tools.read.allstar:
 
@@ -77,13 +77,22 @@ def apogee(xmatch=None,**kwargs):
         if not os.path.exists(filePath):
             download.apogee(dr=dr)
         data= fitsread(filePath,1)
-        #Add astroNN? astroNN file matched line-by-line to allStar, 
+        #Add astroNN? astroNN files matched line-by-line to allStar, 
         #so match here   
-        if kwargs.get('use_astroNN',False) or kwargs.get('astroNN',False):
+        if kwargs.get('use_astroNN',False) or kwargs.get('astroNN',False) \
+                or kwargs.get('use_astroNN_abundances'):
+            _warn_astroNN_abundances()
             astroNNdata= astroNN()
             data= _swap_in_astroNN(data,astroNNdata)
+        if kwargs.get('use_astroNN',False) or kwargs.get('astroNN',False) \
+                or kwargs.get('use_astroNN_distances'):
+            _warn_astroNN_distances()
+            astroNNDistancesdata= astroNNDistances()
+            data= _add_astroNN_distances(data,astroNNDistancesdata)
         if not xmatch is None:
             kwargs.pop('use_astroNN',False)
+            kwargs.pop('use_astroNN_abundances',False)
+            kwargs.pop('use_astroNN_distances',False)
             kwargs.pop('astroNN',False)
             ma,mai= _xmatch_cds(data,xmatch,filePath,**kwargs)
             return (data[mai],ma)
@@ -102,6 +111,7 @@ def apogeerc(xmatch=None,**kwargs):
     INPUT:
        IF the apogee package is not installed:
            dr= (14) SDSS data release
+           use_astroNN= (False) if True, swap in astroNN (Leung & Bovy 2019a) parameters (get placed in, e.g., TEFF and TEFF_ERR) and add astroNN distances (Leung & Bovy 2019b); use 'use_astroNN_abundances' and 'use_astroNN_distances' to only add abundances or distances, respectively
 
        ELSE you can use the same keywords as apogee.tools.read.rcsample:
 
@@ -126,7 +136,9 @@ def apogeerc(xmatch=None,**kwargs):
             download.apogeerc(dr=dr)
         data= fitsread(filePath,1)
         # Swap in astroNN results?
-        if kwargs.get('use_astroNN',False) or kwargs.get('astroNN',False):
+        if kwargs.get('use_astroNN',False) or kwargs.get('astroNN',False) \
+                or kwargs.get('use_astroNN_abundances'):
+            _warn_astroNN_abundances()
             astroNNdata= astroNN()
             # Match on (ra,dec)
             from gaia_tools.xmatch import xmatch as gxmatch
@@ -136,12 +148,31 @@ def apogeerc(xmatch=None,**kwargs):
             data= data[m1]
             astroNNdata= astroNNdata[m2]
             data= _swap_in_astroNN(data,astroNNdata)
+        if kwargs.get('use_astroNN',False) or kwargs.get('astroNN',False) \
+                or kwargs.get('use_astroNN_distances'):
+            _warn_astroNN_distances()
+            astroNNdata= astroNNDistances()
+            # Match on (ra,dec)
+            from gaia_tools.xmatch import xmatch as gxmatch
+            m1,m2,_= gxmatch(data,astroNNdata,maxdist=2.,
+                             colRA1='RA',colDec1='DEC',epoch1=2000.,
+                             colRA2='ra_apogee',colDec2='dec_apogee',
+                             epoch2=2000.)
+            data= data[m1]
+            astroNNdata= astroNNdata[m2]
+            data= _add_astroNN_distances(data,astroNNdata)
         if not xmatch is None:
             if kwargs.get('use_astroNN',False) or kwargs.get('astroNN',False):
                 matchFilePath= filePath.replace('rc-','rc-astroNN-')
+            elif kwargs.get('use_astroNN_abundances',False):
+                matchFilePath= filePath.replace('rc-','rc-astroNN-abundances-')
+            elif kwargs.get('use_astroNN_distances',False):
+                matchFilePath= filePath.replace('rc-','rc-astroNN-distances-')
             else:
                 matchFilePath= filePath
             kwargs.pop('use_astroNN',False)
+            kwargs.pop('use_astroNN_abundances',False)
+            kwargs.pop('use_astroNN_distances',False)
             kwargs.pop('astroNN',False)           
             ma,mai= _xmatch_cds(data,xmatch,matchFilePath,**kwargs)
             return (data[mai],ma)
@@ -156,7 +187,7 @@ def astroNN(**kwargs):
     NAME:
        astroNN
     PURPOSE:
-       read the astroNN file
+       read the astroNN file (Leung & Bovy 2019a)
     INPUT:
        dr= data reduction to load the catalog for (automatically set based on APOGEE_REDUX if not given explicitly)
     OUTPUT:
@@ -174,6 +205,30 @@ def astroNN(**kwargs):
         return data
     else:
         return apread.astroNN(**kwargs)
+
+def astroNNDistances(**kwargs):
+    """
+    NAME:
+       astroNNDistances
+    PURPOSE:
+       read the astroNNDistances file (Leung & Bovy 2019b)
+    INPUT:
+       dr= data reduction to load the catalog for (automatically set based on APOGEE_REDUX if not given explicitly)
+    OUTPUT:
+       astroNN data
+    HISTORY:
+       2019-02-15 - Written - Bovy (UofT)
+    """
+    if not _APOGEE_LOADED:
+        _warn_apogee_fallback()
+        dr= kwargs.get('dr',14)
+        filePath= path.astroNNDistancesPath(dr=dr)
+        if not os.path.exists(filePath):
+            download.astroNNDistances(dr=dr)
+        data= fitsread(filePath,1)
+        return data
+    else:
+        return apread.astroNNDistances(**kwargs)
 
 def gaiarv(dr=2):
     """
@@ -380,5 +435,22 @@ def _swap_in_astroNN(data,astroNNdata):
                 astroNNdata['astroNN_error'][:,indx]
     return data
 
+def _add_astroNN_distances(data,astroNNDistancesdata):
+    fields_to_append= ['dist','dist_model_error','dist_error',
+                       'weighted_dist','weighted_dist_error']
+
+    return numpy.lib.recfunctions.append_fields(\
+        data,
+        fields_to_append,
+        [astroNNDistancesdata[f] for f in fields_to_append],
+        [astroNNDistancesdata[f].dtype for f in fields_to_append],
+        usemask=False)
+
 def _warn_apogee_fallback():
     warnings.warn("Falling back on simple APOGEE interface; for more functionality, install the jobovy/apogee package")
+
+def _warn_astroNN_abundances():
+    warnings.warn("Swapping in stellar parameters and abundances from Leung & Bovy (2019a)")
+
+def _warn_astroNN_distances():
+    warnings.warn("Adding distances from Leung & Bovy (2019b)")

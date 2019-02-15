@@ -57,6 +57,16 @@ w/master/astroNN_apogee_dr14_catalog.fits',
             filePath,verbose=verbose,spider=spider)
     return None    
     
+def astroNNDistances(dr=14,verbose=True,spider=False):
+    filePath= path.astroNNDistancesPath(dr=dr)
+    if os.path.exists(filePath): return None
+    if dr == 14:
+        _download_file(\
+            'https://github.com/henrysky/astroNN_gaia_dr2_paper/raw/master/'\
+            'apogee_dr14_nn_dist.fits',
+            filePath,verbose=verbose,spider=spider)
+    return None    
+    
 def galah(dr=2,verbose=True,spider=False):
     if dr == 1 or dr == '1':
         filePath, ReadMePath= path.galahPath(dr=dr)
