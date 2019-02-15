@@ -123,10 +123,17 @@ options for slicing the catalog are available. If you are using APOGEE
 DR14 and want to use the (less noisy) parameters and abundances
 derived using the `astroNN
 <https://github.com/henrysky/astroNN_spectra_paper_figures>`__ method
-of `Leung & Bovy (2018) <https://arxiv.org/abs/1808.04428>`__, do::
+of `Leung & Bovy (2019a) <https://arxiv.org/abs/1808.04428>`__ as well
+as the distances to APOGEE stars determined using a neural-network
+approach trained on Gaia by Leung & Bovy (2019b; in prep.), do::
 
    apogee_cat= gload.apogee(use_astroNN=True)
    rc_cat= gload.apogeerc(use_astroNN=True)
+
+The recommended distances are ``weighted_dist`` (pc). You can load
+only the astroNN abundances or only the distances using
+``use_astroNN_abundances`` and ``use_astroNN_distances``,
+respectively.
 
 The ``GALAH``, ``apogee``, and ``apogeerc`` catalog can also be
 cross-matched to Gaia DR2 upon loading, e.g., as::
@@ -569,6 +576,8 @@ API
  * ``gaia_tools.load``
      * ``gaia_tools.load.apogee``
      * ``gaia_tools.load.apogeerc``
+     * ``gaia_tools.load.astroNN``
+     * ``gaia_tools.load.astroNNDistances``
      * ``gaia_tools.load.gaiarv``
      * ``gaia_tools.load.galah``
      * ``gaia_tools.load.lamost``
