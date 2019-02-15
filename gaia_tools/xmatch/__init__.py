@@ -15,8 +15,8 @@ from astropy.table import Table
 from astropy import units as u
 
 def xmatch(cat1,cat2,maxdist=2,
-           colRA1='RA',colDec1='DEC',epoch1=2000.,
-           colRA2='RA',colDec2='DEC',epoch2=2000.,
+           colRA1='RA',colDec1='DEC',epoch1=None,
+           colRA2='RA',colDec2='DEC',epoch2=None,
            colpmRA2='pmra',colpmDec2='pmdec',
            swap=False):
     """
@@ -45,12 +45,20 @@ def xmatch(cat1,cat2,maxdist=2,
        2016-09-12 - Written - Bovy (UofT)
        2016-09-21 - Account for Gaia epoch 2015 - Bovy (UofT)
     """
-    if ('ref_epoch' in cat1.dtype.fields and numpy.fabs(epoch1-2015.) > 0.01)\
-            or ('ref_epoch' in cat2.dtype.fields and \
-                    numpy.fabs(epoch2-2015.) > 0.01):
-        warnings.warn("You appear to be using a Gaia catalog, but are not setting the epoch to 2015., which may lead to incorrect matches")
+    if epoch1 is None:
+        if 'ref_epoch' in cat1.dtype.fields:
+            epoch1= cat1['ref_epoch']
+        else:
+            epoch1= 2000.
+    if epoch2 is None:
+        if 'ref_epoch' in cat2.dtype.fields:
+            epoch2= cat2['ref_epoch']
+        else:
+            epoch2= 2000.
+    _check_epoch(cat1,epoch1)
+    _check_epoch(cat2,epoch2)
     depoch= epoch2-epoch1
-    if depoch != 0.:
+    if numpy.any(depoch != 0.):
         # Use proper motion to get both catalogs at the same time
         dra=cat2[colpmRA2]/numpy.cos(cat2[colDec2]/180.*numpy.pi)\
             /3600000.*depoch
@@ -77,7 +85,7 @@ def xmatch(cat1,cat2,maxdist=2,
         return (m1,m2,d2d[mindx])
 
 def cds(cat,xcat='vizier:I/345/gaia2',maxdist=2,colRA='RA',colDec='DEC',
-        selection='best',epoch=2000.,colpmRA='pmra',colpmDec='pmdec',
+        selection='best',epoch=None,colpmRA='pmra',colpmDec='pmdec',
         savefilename=None,gaia_all_columns=False):
     """
     NAME:
@@ -104,10 +112,14 @@ def cds(cat,xcat='vizier:I/345/gaia2',maxdist=2,colRA='RA',colDec='DEC',
        2016-09-21 - Account for Gaia epoch 2015 - Bovy (UofT)
        2018-05-08 - Added gaia_all_columns - Bovy (UofT)
     """
-    if 'ref_epoch' in cat.dtype.fields and numpy.fabs(epoch-2015.) > 0.01:
-        warnings.warn("You appear to be using a Gaia catalog, but are not setting the epoch to 2015., which may lead to incorrect matches")
+    if epoch is None:
+        if 'ref_epoch' in cat.dtype.fields:
+            epoch= cat['ref_epoch']
+        else:
+            epoch= 2000.
+    _check_epoch(cat,epoch)
     depoch= epoch-2000.
-    if depoch != 0.:
+    if numpy.any(depoch != 0.):
         # Use proper motion to get both catalogs at the same time
         dra=cat[colpmRA]/numpy.cos(cat[colDec]/180.*numpy.pi)\
             /3600000.*depoch
@@ -206,7 +218,7 @@ def cds_load(filename):
                                 dtype='float128')
 
 def cds_matchback(cat,xcat,colRA='RA',colDec='DEC',selection='best',
-                  epoch=2000.,colpmRA='pmra',colpmDec='pmdec',):
+                  epoch=None,colpmRA='pmra',colpmDec='pmdec',):
     """
     NAME:
        cds_matchback
@@ -230,10 +242,14 @@ def cds_matchback(cat,xcat,colRA='RA',colDec='DEC',selection='best',
     if selection != 'all': selection= 'best'
     if selection == 'all':
         raise NotImplementedError("selection='all' CDS cross-match not currently implemented")
-    if 'ref_epoch' in cat.dtype.fields and numpy.fabs(epoch-2015.) > 0.01:
-        warnings.warn("You appear to be using a Gaia catalog, but are not setting the epoch to 2015., which may lead to incorrect matches")
+    if epoch is None:
+        if 'ref_epoch' in cat.dtype.fields:
+            epoch= cat['ref_epoch']
+        else:
+            epoch= 2000.
+    _check_epoch(cat,epoch)
     depoch= epoch-2000.
-    if depoch != 0.:
+    if numpy.any(depoch != 0.):
         # Use proper motion to get both catalogs at the same time
         dra=cat[colpmRA]/numpy.cos(cat[colDec]/180.*numpy.pi)\
             /3600000.*depoch
@@ -250,3 +266,16 @@ def cds_matchback(cat,xcat,colRA='RA',colDec='DEC',selection='best',
     idx,d2d,d3d = mc2.match_to_catalog_sky(mc1)
     mindx= d2d < 1e-5*u.arcsec
     return idx[mindx]
+
+def _check_epoch(cat,epoch):
+    warn_about_epoch= False
+    if 'ref_epoch' in cat.dtype.fields:
+        if 'designation' not in cat.dtype.fields: # Assume this is DR1
+            if numpy.any(numpy.fabs(epoch-2015.) > 0.01):
+                warn_about_epoch= True
+        elif 'Gaia DR2' in cat['designation'][0].decode('utf-8'):
+            if numpy.any(numpy.fabs(epoch-2015.5) > 0.01):
+                warn_about_epoch= True
+    if warn_about_epoch:
+        warnings.warn("You appear to be using a Gaia catalog, but are not setting the epoch to 2015. (DR1) or 2015.5 (DR2), which may lead to incorrect matches")
+    return None
