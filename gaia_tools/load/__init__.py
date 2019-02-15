@@ -71,7 +71,7 @@ def apogee(xmatch=None,**kwargs):
        2018-05-09 - Add xmatch - Bovy (UofT)
     """
     if not _APOGEE_LOADED:
-        warnings.warn("Falling back on simple APOGEE interface; for more functionality, install the jobovy/apogee package")
+        _warn_apogee_fallback()
         dr= kwargs.get('dr',14)
         filePath= path.apogeePath(dr=dr)
         if not os.path.exists(filePath):
@@ -119,7 +119,7 @@ def apogeerc(xmatch=None,**kwargs):
        2018-05-09 - Add xmatch - Bovy (UofT)
     """
     if not _APOGEE_LOADED:
-        warnings.warn("Falling back on simple APOGEE interface; for more functionality, install the jobovy/apogee package")
+        _warn_apogee_fallback()
         dr= kwargs.get('dr',14)
         filePath= path.apogeercPath(dr=dr)
         if not os.path.exists(filePath):
@@ -165,7 +165,7 @@ def astroNN(**kwargs):
        2018-10-20 - Written - Bovy (UofT)
     """
     if not _APOGEE_LOADED:
-        warnings.warn("Falling back on simple APOGEE interface; for more functionality, install the jobovy/apogee package")
+        _warn_apogee_fallback()
         dr= kwargs.get('dr',14)
         filePath= path.astroNNPath(dr=dr)
         if not os.path.exists(filePath):
@@ -379,3 +379,6 @@ def _swap_in_astroNN(data,astroNNdata):
             data['FE_H_ERR'.format(tag.upper())]=\
                 astroNNdata['astroNN_error'][:,indx]
     return data
+
+def _warn_apogee_fallback():
+    warnings.warn("Falling back on simple APOGEE interface; for more functionality, install the jobovy/apogee package")
