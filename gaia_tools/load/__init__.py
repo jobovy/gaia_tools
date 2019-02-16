@@ -482,13 +482,24 @@ def _swap_in_astroNN(data,astroNNdata):
 def _add_astroNN_distances(data,astroNNDistancesdata):
     fields_to_append= ['dist','dist_model_error','dist_error',
                        'weighted_dist','weighted_dist_error']
+    if True:
+        # Faster way to join structured arrays (see https://stackoverflow.com/questions/5355744/numpy-joining-structured-arrays)
+        newdtype= data.dtype.descr+\
+            [(f,'<f8') for f in fields_to_append]
+        newdata= numpy.empty(len(data),dtype=newdtype)
+        for name in data.dtype.names:
+            newdata[name]= data[name]
+        for f in fields_to_append:
+            newdata[f]= astroNNDistancesdata[f]
+        return newdata
+    else:
+        return numpy.lib.recfunctions.append_fields(\
+            data,
+            fields_to_append,
+            [astroNNDistancesdata[f] for f in fields_to_append],
+            [astroNNDistancesdata[f].dtype for f in fields_to_append],
+            usemask=False)
 
-    return numpy.lib.recfunctions.append_fields(\
-        data,
-        fields_to_append,
-        [astroNNDistancesdata[f] for f in fields_to_append],
-        [astroNNDistancesdata[f].dtype for f in fields_to_append],
-        usemask=False)
 def _add_astroNN_ages(data,astroNNAgesdata):
     fields_to_append= ['astroNN_age','astroNN_age_total_std',
                        'astroNN_age_predictive_std','astroNN_age_model_std']
