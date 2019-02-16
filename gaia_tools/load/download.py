@@ -67,6 +67,16 @@ def astroNNDistances(dr=14,verbose=True,spider=False):
             filePath,verbose=verbose,spider=spider)
     return None    
     
+def astroNNAges(dr=14,verbose=True,spider=False):
+    filePath= path.astroNNAgesPath(dr=dr)
+    if os.path.exists(filePath): return None
+    if dr == 14:
+        _download_file(\
+            'http://www.astro.ljmu.ac.uk/~astjmack/APOGEEGaiaAges/'\
+            'astroNNBayes_ages_goodDR14.fits',
+            filePath,verbose=verbose,spider=spider)
+    return None    
+    
 def galah(dr=2,verbose=True,spider=False):
     if dr == 1 or dr == '1':
         filePath, ReadMePath= path.galahPath(dr=dr)

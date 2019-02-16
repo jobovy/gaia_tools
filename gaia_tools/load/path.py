@@ -43,6 +43,13 @@ def astroNNDistancesPath(dr=14):
     else:
         raise ValueError('astroNN distances catalog for DR =/= 14 not available')
 
+def astroNNAgesPath(dr=14):
+    if dr == 14:
+        return os.path.join(_GAIA_TOOLS_DATA,'apogee','DR%i' % dr,
+                            'astroNNBayes_ages_goodDR14.fits')
+    else:
+        raise ValueError('astroNN ages catalog for DR =/= 14 not available')
+
 def gaiarvPath(dr=2,format='fits'):
     if format == 'csv': extension= 'csv.gz'
     else: extension= format

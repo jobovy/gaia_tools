@@ -1,6 +1,7 @@
 import os, os.path
 import warnings
 import pickle
+from operator import itemgetter   
 import numpy
 import numpy.lib.recfunctions
 import astropy.io.ascii
@@ -44,7 +45,7 @@ def apogee(xmatch=None,**kwargs):
     INPUT:
        IF the apogee package is not installed:
            dr= (14) SDSS data release
-           use_astroNN= (False) if True, swap in astroNN (Leung & Bovy 2019a) parameters (get placed in, e.g., TEFF and TEFF_ERR) and add astroNN distances (Leung & Bovy 2019b); use 'use_astroNN_abundances' and 'use_astroNN_distances' to only add abundances or distances, respectively
+           use_astroNN= (False) if True, swap in astroNN (Leung & Bovy 2019a) parameters (get placed in, e.g., TEFF and TEFF_ERR) and add astroNN distances (Leung & Bovy 2019b) and ages (Mackereth, Bovy, Leung, et al. 2019); use 'use_astroNN_abundances', 'use_astroNN_distances', and 'use_astroNN_ages' to only add abundances, distances, or ages respectively
 
        ELSE you can use the same keywords as apogee.tools.read.allstar:
 
@@ -78,7 +79,7 @@ def apogee(xmatch=None,**kwargs):
             download.apogee(dr=dr)
         data= fitsread(filePath,1)
         #Add astroNN? astroNN files matched line-by-line to allStar, 
-        #so match here   
+        #so match here [ages not matched line-by-line...]
         if kwargs.get('use_astroNN',False) or kwargs.get('astroNN',False) \
                 or kwargs.get('use_astroNN_abundances'):
             _warn_astroNN_abundances()
@@ -89,12 +90,23 @@ def apogee(xmatch=None,**kwargs):
             _warn_astroNN_distances()
             astroNNDistancesdata= astroNNDistances()
             data= _add_astroNN_distances(data,astroNNDistancesdata)
+        if kwargs.get('use_astroNN',False) or kwargs.get('astroNN',False) \
+                or kwargs.get('use_astroNN_ages'):
+            _warn_astroNN_ages()
+            astroNNAgesdata= astroNNAges()
+            data= _add_astroNN_ages(data,astroNNAgesdata)
         if not xmatch is None:
+            if kwargs.get('use_astroNN',False) or kwargs.get('astroNN',False) \
+                    or kwargs.get('use_astroNN_ages'):
+                matchFilePath= filePath.replace('rc-','rc-astroNN-ages-')
+            else:
+                matchFilePath= filePath
             kwargs.pop('use_astroNN',False)
             kwargs.pop('use_astroNN_abundances',False)
             kwargs.pop('use_astroNN_distances',False)
+            kwargs.pop('use_astroNN_ages',False)
             kwargs.pop('astroNN',False)
-            ma,mai= _xmatch_cds(data,xmatch,filePath,**kwargs)
+            ma,mai= _xmatch_cds(data,xmatch,matchFilePath,**kwargs)
             return (data[mai],ma)
         else:
             return data
@@ -111,7 +123,7 @@ def apogeerc(xmatch=None,**kwargs):
     INPUT:
        IF the apogee package is not installed:
            dr= (14) SDSS data release
-           use_astroNN= (False) if True, swap in astroNN (Leung & Bovy 2019a) parameters (get placed in, e.g., TEFF and TEFF_ERR) and add astroNN distances (Leung & Bovy 2019b); use 'use_astroNN_abundances' and 'use_astroNN_distances' to only add abundances or distances, respectively
+           use_astroNN= (False) if True, swap in astroNN (Leung & Bovy 2019a) parameters (get placed in, e.g., TEFF and TEFF_ERR) and add astroNN distances (Leung & Bovy 2019b) and ages (Mackereth, Bovy, Leung, et al. 2019); use 'use_astroNN_abundances', 'use_astroNN_distances', and 'use_astroNN_ages' to only add abundances, distances, or ages respectively
 
        ELSE you can use the same keywords as apogee.tools.read.rcsample:
 
@@ -161,6 +173,11 @@ def apogeerc(xmatch=None,**kwargs):
             data= data[m1]
             astroNNdata= astroNNdata[m2]
             data= _add_astroNN_distances(data,astroNNdata)
+        if kwargs.get('use_astroNN',False) or kwargs.get('astroNN',False) \
+                or kwargs.get('use_astroNN_ages'):
+            _warn_astroNN_ages()
+            astroNNAgesdata= astroNNAges()
+            data= _add_astroNN_ages(data,astroNNAgesdata)
         if not xmatch is None:
             if kwargs.get('use_astroNN',False) or kwargs.get('astroNN',False):
                 matchFilePath= filePath.replace('rc-','rc-astroNN-')
@@ -168,11 +185,14 @@ def apogeerc(xmatch=None,**kwargs):
                 matchFilePath= filePath.replace('rc-','rc-astroNN-abundances-')
             elif kwargs.get('use_astroNN_distances',False):
                 matchFilePath= filePath.replace('rc-','rc-astroNN-distances-')
+            elif kwargs.get('use_astroNN_ages',False):
+                matchFilePath= filePath.replace('rc-','rc-astroNN-ages-')
             else:
                 matchFilePath= filePath
             kwargs.pop('use_astroNN',False)
             kwargs.pop('use_astroNN_abundances',False)
             kwargs.pop('use_astroNN_distances',False)
+            kwargs.pop('use_astroNN_ages',False)
             kwargs.pop('astroNN',False)           
             ma,mai= _xmatch_cds(data,xmatch,matchFilePath,**kwargs)
             return (data[mai],ma)
@@ -229,6 +249,30 @@ def astroNNDistances(**kwargs):
         return data
     else:
         return apread.astroNNDistances(**kwargs)
+
+def astroNNAges(**kwargs):
+    """
+    NAME:
+       astroNNAges
+    PURPOSE:
+       read the astroNNAges file (Mackereth, Bovy, Leung, et al. 2019)
+    INPUT:
+       dr= data reduction to load the catalog for (automatically set based on APOGEE_REDUX if not given explicitly)
+    OUTPUT:
+       astroNN data
+    HISTORY:
+       2019-02-15 - Written - Bovy (UofT)
+    """
+    if not _APOGEE_LOADED:
+        _warn_apogee_fallback()
+        dr= kwargs.get('dr',14)
+        filePath= path.astroNNAgesPath(dr=dr)
+        if not os.path.exists(filePath):
+            download.astroNNAges(dr=dr)
+        data= fitsread(filePath,1)
+        return data
+    else:
+        return apread.astroNNAges(**kwargs)
 
 def gaiarv(dr=2):
     """
@@ -445,6 +489,39 @@ def _add_astroNN_distances(data,astroNNDistancesdata):
         [astroNNDistancesdata[f] for f in fields_to_append],
         [astroNNDistancesdata[f].dtype for f in fields_to_append],
         usemask=False)
+def _add_astroNN_ages(data,astroNNAgesdata):
+    fields_to_append= ['astroNN_age','astroNN_age_total_std',
+                       'astroNN_age_predictive_std','astroNN_age_model_std']
+    if True:
+        # Faster way to join structured arrays (see https://stackoverflow.com/questions/5355744/numpy-joining-structured-arrays)
+        newdtype= data.dtype.descr+\
+            [(f,'<f8') for f in fields_to_append]
+        newdata= numpy.empty(len(data),dtype=newdtype)
+        for name in data.dtype.names:
+            newdata[name]= data[name]
+        for f in fields_to_append:
+            newdata[f]= numpy.zeros(len(data))-9999.
+        data= newdata
+    else:
+        # This, for some reason, is the slow part (see numpy/numpy#7811
+        data= numpy.lib.recfunctions.append_fields(\
+            data,
+            fields_to_append,
+            [numpy.zeros(len(data))-9999. for f in fields_to_append],
+            usemask=False)
+    # Only match primary targets
+    hash1= dict(zip(data['APOGEE_ID'][(data['EXTRATARG'] & 2**4) == 0],
+                    numpy.arange(len(data))[(data['EXTRATARG'] & 2**4) == 0]))
+    hash2= dict(zip(astroNNAgesdata['APOGEE_ID'],
+                    numpy.arange(len(astroNNAgesdata))))
+    common= numpy.intersect1d(\
+        data['APOGEE_ID'][(data['EXTRATARG'] & 2**4) == 0],
+        astroNNAgesdata['APOGEE_ID'])
+    indx1= list(itemgetter(*common)(hash1))
+    indx2= list(itemgetter(*common)(hash2))
+    for f in fields_to_append:
+        data[f][indx1]= astroNNAgesdata[f][indx2]
+    return data
 
 def _warn_apogee_fallback():
     warnings.warn("Falling back on simple APOGEE interface; for more functionality, install the jobovy/apogee package")
@@ -454,3 +531,6 @@ def _warn_astroNN_abundances():
 
 def _warn_astroNN_distances():
     warnings.warn("Adding distances from Leung & Bovy (2019b)")
+
+def _warn_astroNN_ages():
+    warnings.warn("Adding ages from Mackereth, Bovy, Leung, et al. (2019)")
