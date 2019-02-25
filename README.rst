@@ -135,7 +135,7 @@ trained on Gaia by Leung & Bovy (2019b; in prep.), and the ages from
 The recommended distances are ``weighted_dist`` (pc) and the ages are
 ``astroNN_age``. You can load only the astroNN abundances, only the
 distances, or only the ages using ``use_astroNN_abundances``,
-``use_astroNN_distances``, and ``use_astroNN_ages, respectively.
+``use_astroNN_distances``, and ``use_astroNN_ages``, respectively.
 
 The ``GALAH``, ``apogee``, and ``apogeerc`` catalog can also be
 cross-matched to Gaia DR2 upon loading, e.g., as::
