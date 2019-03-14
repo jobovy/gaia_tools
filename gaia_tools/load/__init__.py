@@ -96,11 +96,7 @@ def apogee(xmatch=None,**kwargs):
             astroNNAgesdata= astroNNAges()
             data= _add_astroNN_ages(data,astroNNAgesdata)
         if not xmatch is None:
-            if kwargs.get('use_astroNN',False) or kwargs.get('astroNN',False) \
-                    or kwargs.get('use_astroNN_ages'):
-                matchFilePath= filePath.replace('rc-','rc-astroNN-ages-')
-            else:
-                matchFilePath= filePath
+            matchFilePath= filePath
             kwargs.pop('use_astroNN',False)
             kwargs.pop('use_astroNN_abundances',False)
             kwargs.pop('use_astroNN_distances',False)
