@@ -43,6 +43,7 @@ Planned Features
 # Imports
 
 from json import *
+import textwrap
 
 #############################################################################
 # Info
@@ -103,3 +104,14 @@ def strjoinkeys(dct, keys, joinstr='\n'):
             dct[key] = joinstr.join(val)
 
     return dct
+
+
+def prettyprint(dct):
+    print('{')
+    for key, val in dct.items():
+        print(" '{}':".format(key))
+        if isinstance(val, str):
+            print(textwrap.indent(val, '  \t'))
+        else:
+            print(textwrap.indent(val.__repr__(), '  \t'))
+    print('}')

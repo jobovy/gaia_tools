@@ -47,10 +47,13 @@ import json
 import os
 import time
 
+# 3rd Party Packages
 from astropy.table import QTable
 from astropy import units as u
 
+# Custom Packages
 from . import query as Query
+from ..util.table_utils import add_units_to_Table
 
 #############################################################################
 # Info
@@ -63,60 +66,6 @@ __version__ = "2.0.0"
 __maintainer__ = "Nathaniel Starkman"
 __email__ = "n.starkman@mail.utoronto.ca"
 __status__ = "Production"
-
-#############################################################################
-# Helper Functions
-
-
-def add_units_to_Table(df, udict=None, _subkey=None):
-    """takes Table and returns QTable
-    dfQ = add_units_to_Table(df, udict)
-    udict: unit dictionary
-    _subkey key for dictionary if loading from JSON
-        str or list of str for nested dict
-    """
-    def safeget(dct, *keys):
-        """https://stackoverflow.com/a/25833661/5041184"""
-        for key in keys:
-            try:
-                dct = dct[key]
-            except KeyError:
-                return None
-        return dct
-
-    # Pre-adjusting for JSON udict
-    if udict is None:
-        dirname = os.path.dirname(__file__)
-        udict = os.path.join(dirname, 'gaia_query_defaults.json')
-        _subkey = ['units', ]
-        # Now it's a string and will trigger next 'if'
-
-    # JSON udict
-    if isinstance(udict, str):
-        with open(udict, 'r') as file:
-            defaults = json.load(file)
-            if _subkey is None:
-                pass
-            elif isinstance(_subkey, str):
-                defaults = defaults[_subkey]
-            else:  # nested
-                defaults = safeget(defaults, *_subkey)
-
-        udict = {}
-        for k, v in defaults.items():
-            if v != '':
-                udict[k] = eval(v)  # astropy units
-            else:
-                udict[k] = u.dimensionless_unscaled
-
-    # Adding Units, if corresponding column in Table
-    for key, unit in udict.items():
-        if key in df.columns and df[key].unit != unit:
-            setattr(df[key], 'unit', unit)
-
-    df = QTable(df)
-    return df
-# /def
 
 
 #############################################################################
