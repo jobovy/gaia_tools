@@ -247,17 +247,29 @@ def add_abs_pm_col(df, pm1, pm2):
               atan(pmdec/pmra)
     TODO allow name changing
     """
-    add_calculated_col(df, lambda x, y: np.sqrt(x**2 + y**2), pm1, pm2,
-                       name='pm', description=r'$\sqrt{pmra**2 + pmdec**2}$')
+    def pm_ang_err(x, y, dx, dy):
+        dpmdx = (y * dx) / np.sqrt(x**2 + y**2)
+        dpmdy = (x * dy) / np.sqrt(x**2 + y**2)
+        return np.sqrt(dpmdx**2 + dpmdy**2)
 
-    add_calculated_col(df,
-                       lambda x, y: np.sqrt(x**2 + y**2),
-                       pm1 + '_err', pm2 + '_err',
-                       name='pm_err',
-                       description=r'$\sqrt{\delta pmra**2 + \delta pmdec**2}$')
+    add_calculated_col(df, pm_ang_err, pm1, pm2, pm1 + '_err', pm2 + '_err',
+                       name='pm_ang_err', description=r'$\sqrt{\frac{(y \partial{x})^2+(x \partial{y})^2}{x^2 + y^2}}$')
 
     add_calculated_col(df, lambda x, y: np.arctan2(y, x), pm1, pm2,
                        name='pm_ang', description='atan(pmdec/pmra)')
+
+    def pm_err(x, y, dx, dy):
+        dpmdx = (x * dx) / np.sqrt(x**2 + y**2)
+        dpmdy = (y * dy) / np.sqrt(x**2 + y**2)
+        return np.sqrt(dpmdx**2 + dpmdy**2)
+
+    add_calculated_col(df, pm_err,
+                       pm1, pm2, pm1 + '_err', pm2 + '_err',
+                       name='pm_err',
+                       description=r'$\sqrt{\frac{(x \partial{x})^2+(y \partial{y})^2}{x^2 + y^2}}$')
+
+    add_calculated_col(df, lambda x, y: np.sqrt(x**2 + y**2), pm1, pm2,
+                       name='pm', description=r'$\sqrt{pmra**2 + pmdec**2}$')
 
 
 def rename_columns(df, *args, **kw):
