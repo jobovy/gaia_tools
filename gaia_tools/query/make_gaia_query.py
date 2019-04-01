@@ -48,7 +48,7 @@ import os
 import time
 
 # 3rd Party Packages
-from astropy.table import QTable
+from astropy.table import Table, QTable
 from astropy import units as u
 
 # Custom Packages
@@ -514,9 +514,15 @@ def make_query(WHERE=None, ORDERBY=None, FROM=None, random_index=False,
 
         if units is False:  # don't use added units
             return df
-        elif udict is not None:  # units is true
+        elif udict is not None:  # use added units
+            # FIXME local queries return incompatible dtypes
+            if local is True:
+                #         id          everything else
+                dtypes = ['int64'] + ['float64'] * (len(df.colnames) - 1)
+                df = Table(df, names=df.colnames, dtype=dtypes)
+
             return add_units_to_Table(df, udict)
-        else:  # units is true, but there are no units
+        else:  # units is true, but there are no units to use
             return df
 
     else:
