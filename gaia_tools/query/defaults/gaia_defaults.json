@@ -181,8 +181,11 @@
         "gg": "u.mag",
         "phot_g_mean_flux_over_error": "",
         "bp_rp": "u.mag",
+        "gbp_rp": "u.mag",
         "bp_g": "u.mag",
+        "gbp_g": "u.mag",
         "g_rp": "u.mag",
+        "gg_rp": "u.mag",
         "panstarrs_g_mean_psf_mag": "u.mag",
         "g": "u.mag",
         "panstarrs_g_mean_psf_mag_error": "u.mag",
@@ -223,8 +226,8 @@
         "h_k": "u.mag",
         "phi1": "u.deg",
         "phi2": "u.deg",
-        "phi1": "u.mas / u.yr",
-        "phi2": "u.mas / u.yr",
+        "pmphi1": "u.mas / u.yr",
+        "pmphi2": "u.mas / u.yr",
         "xi1": "u.deg",
         "xi2": "u.deg"
     }
