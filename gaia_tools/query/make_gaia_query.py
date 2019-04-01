@@ -111,10 +111,11 @@ def _make_query_defaults(fpath='default'):
         with open(dirpath, 'r') as file:
             df = json.load(file)
 
+        # the dictionary needs to be flattened
         defaults = {
             'asdict': df['asdict'],
             'units': df['units'],
-            **df[fpath]
+            **df[fpath]  # selecting the particular default option
         }
 
     # user file
@@ -515,8 +516,9 @@ def make_query(WHERE=None, ORDERBY=None, FROM=None, random_index=False,
 
     # Query
     if do_query is True:
-        print('\n\nstarting query @ {}'.format(time.strftime('%m%d%H%S')))
+        print('\n\nstarting query @ {}'.format(time.strftime('m%md%dh%Hs%S')))
         df = Query(query, local=local)
+        print('query finished @ {}'.format(time.strftime('m%md%dh%Hs%S')))
 
         # caching
         if cache != '':
@@ -524,7 +526,7 @@ def make_query(WHERE=None, ORDERBY=None, FROM=None, random_index=False,
 
         # apply units
         if units is False:  # don't use added units
-            return df
+            _return = df
         # use added units
         elif udict is not None:
             # FIXME local queries return incompatible dtypes
@@ -532,25 +534,29 @@ def make_query(WHERE=None, ORDERBY=None, FROM=None, random_index=False,
                 #         id          everything else
                 dtypes = ['int64'] + ['float64'] * (len(df.colnames) - 1)
                 df = Table(df, names=df.colnames, dtype=dtypes)
-            return add_units_to_Table(df, udict)
+            _return = add_units_to_Table(df, udict)
         # units is true, but there are no units to use
         else:
-            return df
+            _return = df
+
+        return _return
 
     # don't query
     else:
         # don't use units
         if units is False:
-            return query
+            _return = query
         # use units
         else:
             # there are units
             if udict is not None:
-                return query, udict
+                _return = query, udict
             # there aren't units to use
             else:
                 print('no units to use')
-                return query, {}
+                _return = query, {}
+
+        return _return
 # /def
 
 
