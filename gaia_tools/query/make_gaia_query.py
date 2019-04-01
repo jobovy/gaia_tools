@@ -53,6 +53,7 @@ from astropy import units as u
 
 # Custom Packages
 from . import query as Query
+from . import cache as Cache
 from ..util.table_utils import add_units_to_Table
 
 #############################################################################
@@ -309,6 +310,7 @@ def _make_query_FROM(FROM=None, inmostquery=False, _tab='    '):
 def _query_tab_level(query, tablevel, _tab='    '):
     r"""Add tab level to query
     indents the whoel query by the tab level
+    # TODO use textwrap.indent instead
 
     INPUTS
     ------
@@ -382,7 +384,7 @@ def make_query(WHERE=None, ORDERBY=None, FROM=None, random_index=False,
                inmostquery=False,
                units=False,
                # doing the query
-               do_query=False, local=False,
+               do_query=False, local=False, cache='',
                # extra options
                _tab='    ', pprint=False):
     """Makes a whole Gaia query
@@ -436,6 +438,9 @@ def make_query(WHERE=None, ORDERBY=None, FROM=None, random_index=False,
     local: bool
         perform gaia query locally (if do_query is True)
         Default: False
+    cache: str
+        use cache.nickname
+        empty string does not save
     _tab: str
         the tab
         default: 4 spaces
@@ -508,30 +513,43 @@ def make_query(WHERE=None, ORDERBY=None, FROM=None, random_index=False,
     if pprint is True:
         print(query)
 
+    # Query
     if do_query is True:
         print('\n\nstarting query @ {}'.format(time.strftime('%m%d%H%S')))
         df = Query(query, local=local)
 
+        # caching
+        if cache != '':
+            Cache.nickname(query, cache)
+
+        # apply units
         if units is False:  # don't use added units
             return df
-        elif udict is not None:  # use added units
+        # use added units
+        elif udict is not None:
             # FIXME local queries return incompatible dtypes
             if local is True:
                 #         id          everything else
                 dtypes = ['int64'] + ['float64'] * (len(df.colnames) - 1)
                 df = Table(df, names=df.colnames, dtype=dtypes)
-
             return add_units_to_Table(df, udict)
-        else:  # units is true, but there are no units to use
+        # units is true, but there are no units to use
+        else:
             return df
 
+    # don't query
     else:
+        # don't use units
         if units is False:
             return query
+        # use units
         else:
+            # there are units
             if udict is not None:
                 return query, udict
+            # there aren't units to use
             else:
+                print('no units to use')
                 return query, {}
 # /def
 
@@ -541,7 +559,7 @@ def make_simple_query(WHERE=None, ORDERBY=None, FROM=None,
                       user_cols=None, all_columns=False,
                       gaia_mags=False, panstarrs1=False, twomass=False,
                       user_ASdict=None, defaults='default', units=False,
-                      do_query=False, local=False,
+                      do_query=False, local=False, cache='',
                       pprint=False):
     """make_gaia_query wrapper for single-layer queries
     with some defaults changed and options removed
@@ -614,6 +632,6 @@ def make_simple_query(WHERE=None, ORDERBY=None, FROM=None,
                       panstarrs1=panstarrs1, twomass=twomass,
                       user_ASdict=user_ASdict, inmostquery=True,
                       defaults=defaults, units=units,
-                      do_query=do_query, local=local,
+                      do_query=do_query, local=local, cache=cache,
                       pprint=pprint)
 # /def
