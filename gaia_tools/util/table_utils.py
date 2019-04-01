@@ -49,7 +49,7 @@ import os
 import itertools
 import numpy as np
 
-from astropy.table import QTable
+from astropy.table import Table, QTable
 
 try:
     from util.myastropy.units import units as u
