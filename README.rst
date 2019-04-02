@@ -348,11 +348,14 @@ Two functions are provided for creating **and** executing queries:
 ADQL queries, allow for complex user input, can automatically perform *2MASS*
 and *panSTARRS1* crossmatches, and then perform the query and cache the results.
 
+There is an example document demonstrating varying uses and options for both
+``make_query`` and ``make_simple_query`` in `this example document <https://github.com/jobovy/gaia_tools/blob/master/examples/make_gaia_query_examples.ipynb>__.`
+
 The call signature of ``make_query`` is::
 
     make_query(
         # ADQL Options
-        WHERE=None, ORDERBY=None, FROM=None, random_index=False,
+        WHERE=None, ORDERBY=None, FROM=None, random_index=None,
         user_cols=None, all_columns=False,
         gaia_mags=False, panstarrs1=False, twomass=False,
         use_AS=False, user_ASdict=None, defaults='default',
@@ -370,10 +373,151 @@ are forced to ``True``.
 
 The ADQL options of `make_query` are:
 
-    * WHERE=None
-    * ORDERBY=None,
-    * FROM=None,
 
+``WHERE``
+	optional user-input `WHERE' argument.
+	
+	* None: skips
+	* str: used in query
+
+	example::
+
+		`1=CONTAINS(POINT('ICRS',gaia.ra,gaia.dec),
+			    CIRCLE('ICRS',200.,65.,5.))`
+
+
+``ORDERBY``
+	optional user-input `ORDER BY' argument.
+
+	* None: skips
+	* str: used in query
+
+	example::
+
+		`gaia.source_id`
+
+
+``FROM``
+	optional user-input `FROM' argument.
+
+	* None: skips
+	* str: used in query
+
+
+	The ``FROM`` argument is the most powerful part of the ADQL functions.
+	By calling ``make_query`` in ``FROM`` it is very easy to create nested ADQL functions.
+
+	example::
+
+		# Innermost Query
+		FROM=make_query(
+			...
+			inmostquery=True, # telling system this is the innermost level
+		)
+
+	Note that it is necessary to specify ``inmostquery`` if the query is the innermost
+	query. It is for this reason ``make_simple_query`` is provided: to preclude specifying
+	a query is single-levelled.
+
+
+``random_index``
+	the gaia.random_index for fast querying
+
+	* None: skips
+	* int: appends ``AND random_index < ...`` to ``WHERE``
+
+
+``user_cols``
+	Data columns in addition to default columns
+
+	* None: skips
+	* str: uses columns
+
+	``user_cols`` specified in an outer level of a query must have corresponding ``user_cols``
+	in all inner levels, so that the columns can properly propagate through the query.
+	For convenience, ``user_cols`` will automatically remove trailing commas, which would
+	otherwise break the ADQL query and be difficult to debug.
+
+	example::
+
+		make_query(
+			user_cols="gaia.L, gaia.B,"  # <- trailing , automatically trimmed
+			FROM=make_query(
+				user_cols="gaia.L, gaia.B"
+			)
+		)
+
+
+``all_columns``
+	whether to include all columns.
+
+``gaia_mags``
+	whether to include Gaia magnitudes as specified in ``defaults``
+
+``panstarrs1``
+	whether to INNER JOIN Panstarrs1, using columns specified in ``defaults``
+
+``twomass``
+	whether to INNER JOIN 2MASS, using columns specified in ``defaults``
+
+	* ``use_AS``: add 'AS __' to the data columns, as specified in ``defaults``
+	
+	This is good for the outer part of the query so as to have convenient names in the output data table.
+	``use_AS`` should never by used for an inner-level query.
+
+``user_ASdict``
+	dictionary with `AS' arguments for ``user_cols``
+
+``defaults``
+	file for default columns, units, AS specifications, etc
+
+	* 'default': the default file
+	* 'empty': only sourc_id is built-in
+	* 'full': a more verbose set of columns
+	* other <str>: a custom defaults file
+	* <dict>: a custom defaults file
+
+	For the included columns for `default`, `empty`, and `full`, check out the 
+	`example document <https://github.com/jobovy/gaia_tools/blob/master/examples/make_gaia_query_examples.ipynb>__.`
+	for an example of a custom ``defaults`` file, see this
+	`example document <https://github.com/jobovy/gaia_tools/blob/master/examples/custom_defaults.json>__.`
+
+
+``inmostquery``
+	needed if in-most query
+
+``units``
+	adds units to a query, as specified in ``defaults``
+
+``do_query``
+	performs the query
+
+``local``
+	to perform locally or on Gaia servers
+
+``cache``
+	to cache the result, with nickname specification
+
+	* True (False): does (not) cache
+	* str: caches with nickname = str
+
+``timeit``
+	if True, print how long the query ran
+
+``verbose``
+	if True, up verbosity level
+
+``dbname``
+	if local, the name of the postgres database
+
+``user``
+	if local, the name of the postgres user
+
+``_tab``
+	the tab. In general, this need not be changed
+
+``pprint``
+	to print the query
 
 
 
