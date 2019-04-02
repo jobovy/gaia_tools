@@ -351,7 +351,7 @@ and *panSTARRS1* crossmatches, and then perform the query and cache the results.
 There is an example document demonstrating varying uses and options for both
 ``make_query`` and ``make_simple_query`` in this `example document`_.
 
-.. _`example document`: gaia_tools/examples/make_gaia_query_examples.ipynb
+.. _`example document`: ./examples/make_gaia_query_examples.ipynb
 
 The call signature of ``make_query`` is::
 
@@ -481,13 +481,10 @@ The ADQL options of `make_query` are:
 
 	For the included columns for `default`, `empty`, and `full`, check out the 
 	`example document`_.
-	
-.. _`example document`: gaia_tools/examples/make_gaia_query_examples.ipynb
 
+	For an example of a custom ``defaults`` file, see this `example json file`_.
 
-	For an example of a custom ``defaults`` file, see this `example document`_.
-
-.. _`example document`: gaia_tools/examples/custom_defaults.json
+.. _`example json file`: ./examples/custom_defaults.json
 
 
 ``inmostquery``
