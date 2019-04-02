@@ -349,7 +349,7 @@ ADQL queries, allow for complex user input, can automatically perform *2MASS*
 and *panSTARRS1* crossmatches, and then perform the query and cache the results.
 
 There is an example document demonstrating varying uses and options for both
-``make_query`` and ``make_simple_query`` in `this example document <https://github.com/nstarman/gaia_tools/blob/master/examples/make_gaia_query_examples.ipynb>__.`
+``make_query`` and ``make_simple_query`` in `this example document <gaia_tools/examples/make_gaia_query_examples.ipynb>_.`
 
 The call signature of ``make_query`` is::
 
