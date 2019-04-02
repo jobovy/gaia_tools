@@ -247,9 +247,7 @@ options. Queries can be timed using ``timeit=True``.
 
 Advanced tools to create and execute complex ADQL queries are included in this
 module via `query.make_query` and `query.make_simple_query`. Both functions are
-described in the following section, titled *Extended tools for querying the
-Gaia Archive* as well as this `example document
-<https://github.com/nstarman/gaia_tools/blob/master/examples/make_gaia_query_examples.ipynb>__.`
+described in the following section as well as this `example document`_
 
 
 To setup your own local database with Gaia DR2, you can follow the
