@@ -369,7 +369,7 @@ The call signature of ``make_query`` is::
 
 ``make_simple_query`` is a wrapper for ``make_query``, but optimized for
 single-layer queries. The options ``use_AS`` and ``inmostquery``
-are forced to ``True``.
+are forced to ``True`` and ``_tab`` is not included.
 
 The ADQL options of `make_query` are:
 
