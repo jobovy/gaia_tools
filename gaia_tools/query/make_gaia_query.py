@@ -52,7 +52,7 @@ from astropy.table import Table, QTable
 from astropy import units as u
 
 # Custom Packages
-from . import query as Query
+from ._query import query as Query
 from . import cache as Cache
 from ..util.table_utils import add_units_to_Table
 
@@ -473,8 +473,6 @@ def make_query(WHERE=None, ORDERBY=None, FROM=None, random_index=None,
 
     else:
         raise ValueError('cache must be <str> or <bool>')
-
-
 
     # QUERY CONSTRUCTION
     query, udict = _make_query_SELECT(user_cols=user_cols, use_AS=use_AS,
