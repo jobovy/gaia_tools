@@ -245,13 +245,13 @@ def _make_query_SELECT(user_cols=None, use_AS=True,
         query += '\n'
     elif not isinstance(user_cols, str):
         raise TypeError('user_sel is not a (str)')
-    elif user_cols == '':
+    elif user_cols == '':  # empty string
             query += '\n'
     else:
         query += ',\n\n--Custom Selection & Assignement:'
         if user_cols[:1] != '\n':
             user_cols = '\n' + user_cols
-        if user_cols[-1] == ',':
+        if user_cols[-1] == ',':  # getting rid of trailing ,
             user_cols = user_cols[:-1]
         query += user_cols
 
@@ -335,7 +335,7 @@ def _query_tab_level(query, tablevel, _tab='    '):
 # /def
 
 
-def _make_query_WHERE(WHERE, random_index=False):
+def _make_query_WHERE(WHERE, random_index=None):
     r"""make query WHERE
 
     INPUTS
@@ -353,7 +353,7 @@ def _make_query_WHERE(WHERE, random_index=False):
         WHERE = '\n' + WHERE
     s += WHERE
 
-    if random_index is not False:
+    if random_index is not None:
         s += '\nAND random_index < ' + str(int(random_index))
 
     return s
@@ -378,7 +378,7 @@ def _make_query_ORDERBY(ORDERBY):
 # /def
 
 
-def make_query(WHERE=None, ORDERBY=None, FROM=None, random_index=False,
+def make_query(WHERE=None, ORDERBY=None, FROM=None, random_index=None,
                user_cols=None, all_columns=False,
                gaia_mags=False, panstarrs1=False, twomass=False,
                use_AS=False, user_ASdict=None, defaults='default',
@@ -393,29 +393,26 @@ def make_query(WHERE=None, ORDERBY=None, FROM=None, random_index=False,
 
     INPUTS
     ------
-    WHERE: str (or None)
+    WHERE: str, None  (default None)
         ADQL `WHERE' argument
     ORDERBY: str (or None)
         ADQL `ORDER BY' argument
-    FROM: str (or None)
+    FROM: str, None  (default None)
         ADQL `FFROM' argument
-    random_index: int or False
+    random_index: int, None  (default None)
         the gaia.random_index for fast querying
-        Default: False
-    user_cols: str (or None)
+    user_cols: str, None  (default None)
         Data columns in addition to default columns
-        Default: None
         ex: "gaia.L, gaia.B,"
-    all_columns: bool
+    all_columns: bool  (default False)
         Whether to include all columns
         via ', *'
-        Default: False
-    gaia_mags: bool
+    gaia_mags: bool  (default False)
         Whether to include Gaia magnitudes
-        Default: False
-    panstarrs1: bool
+    panstarrs1: bool  (default False)
         Whether to include Panstarrs1 g,r,i,z magnitudes and INNER JOIN on Gaia
-        Default: False
+    twomass: bool  (default False)
+        Whether to include 2MASS magnitudes and INNER JOIN on Gaia
     use_AS: bool
         True will add 'AS __' to the data columns
         This is good for the outer part of the query
@@ -423,7 +420,7 @@ def make_query(WHERE=None, ORDERBY=None, FROM=None, random_index=False,
         Default: True
     user_ASdict: dict (or None)
         dictionary containing `AS' arguments
-    defaults: str (or None or dict)
+    defaults: str, None, dict  (default 'default')
         the filepath (str) of the gaia query defaults
         if None, uses '/defaults/gaia_defaults.json'
         if ''
@@ -431,23 +428,27 @@ def make_query(WHERE=None, ORDERBY=None, FROM=None, random_index=False,
         **SEE DEFAULTS
     inmostquery: bool
         needed if in-most query and not providing a FROM
-    units: bool
+    units: bool  (default True)
         adds missing units to a query, if units in defaults['units']
-        Default: True
-    do_query: bool
+    do_query: bool  (default False)
         performs a gaia query
-        Default: False
-    local: bool
+    local: bool  (default False)
         perform gaia query locally (if do_query is True)
-        Default: False
-    cache: str, bool
+    cache: str, bool  (default True)
         False: does not cache
         str or True: caches
         if str: set as cache.nickname
-    _tab: str
+    timeit: bool  (default False)
+        if True, print how long the query ran
+    verbose: bool  (default False)
+        if True, up verbosity level
+    dbname: str  (default 'catalogs')
+        if local, the name of the postgres database
+    user: str  (default 'postgres')
+        if local, the name of the postgres user
+    _tab: str  (default '    ')
         the tab
-        default: 4 spaces
-    pprint: bool
+    pprint: bool  (default False)
         print the query
 
     Returns
@@ -508,7 +509,7 @@ def make_query(WHERE=None, ORDERBY=None, FROM=None, random_index=False,
     # Adding WHERE
     if WHERE is not None:
         query += _make_query_WHERE(WHERE, random_index=random_index)
-    elif random_index is not False:
+    elif random_index is not None:
         query += "\n\n--Selections:\nWHERE\nrandom_index <= "
         query += str(int(random_index))
 
@@ -594,47 +595,53 @@ def make_simple_query(WHERE=None, ORDERBY=None, FROM=None,
 
     INPUTS
     ------
-    WHERE: str (or None)
+    WHERE: str, None  (default None)
         ADQL `WHERE' argument
     ORDERBY: str (or None)
         ADQL `ORDER BY' argument
-    FROM: str (or None)
+    FROM: str, None  (default None)
         ADQL `FFROM' argument
-    random_index: int or False
+    random_index: int, None  (default None)
         the gaia.random_index for fast querying
-        Default: False
-    user_cols: str (or None)
+    user_cols: str, None  (default None)
         Data columns in addition to default columns
-        Default: None
         ex: "gaia.L, gaia.B,"
-    all_columns: bool
+    all_columns: bool  (default False)
         Whether to include all columns
         via ', *'
-        Default: False
-    gaia_mags: bool
+    gaia_mags: bool  (default False)
         Whether to include Gaia magnitudes
-        Default: False
-    panstarrs1: bool
+    panstarrs1: bool  (default False)
         Whether to include Panstarrs1 g,r,i,z magnitudes and INNER JOIN on Gaia
-        Default: False
+    twomass: bool  (default False)
+        Whether to include 2MASS magnitudes and INNER JOIN on Gaia
     user_ASdict: dict (or None)
         dictionary containing `AS' arguments
-    defaults: str (or None or dict)
+    defaults: str, None, dict  (default 'default')
         the filepath (str) of the gaia query defaults
         if None, uses '/defaults/gaia_defaults.json'
         if ''
         if dict, assumes the dictionary is correct and returns
         **SEE DEFAULTS
-    units: bool
+    units: bool  (default True)
         adds missing units to a query, if units in defaults['units']
-        Default: True
-    do_query: bool
+    do_query: bool  (default False)
         performs a gaia query
-        Default: False
-    local: bool
+    local: bool  (default False)
         perform gaia query locally (if do_query is True)
-        Default: False
-    pprint: bool
+    cache: str, bool  (default True)
+        False: does not cache
+        str or True: caches
+        if str: set as cache.nickname
+    timeit: bool  (default False)
+        if True, print how long the query ran
+    verbose: bool  (default False)
+        if True, up verbosity level
+    dbname: str  (default 'catalogs')
+        if local, the name of the postgres database
+    user: str  (default 'postgres')
+        if local, the name of the postgres user
+    pprint: bool  (default False)
         print the query
 
     Returns
