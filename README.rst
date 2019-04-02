@@ -19,6 +19,7 @@ with contributions from
 
  * Henry Leung
  * Miguel de Val-Borro
+ * Nathaniel Starkman
  * Simon Walker
 
 ACKNOWLEDGING USE OF THIS CODE
@@ -186,8 +187,8 @@ stars in common, you can do::
 	 from gaia_tools import xmatch
 	 m1,m2,sep= xmatch.xmatch(rc_cat,galah_cat,colDec2='dec')
 	 print(rc_cat[m1]['TEFF']-galah_cat[m2]['Teff'])
-	      Teff     
-	      K       
+	      Teff
+	      K
 	 --------------
 	 -12.3999023438
 	  0.39990234375
@@ -232,7 +233,7 @@ catalog, the easiest way is to perform ADQL or SQL queries against the
 `Gaia Archive database <https://gea.esac.esa.int/archive/>`__. Some
 tools to help with this are located in ``gaia_tools.query``.
 
-The only function currently in this module is ``query.query``, which
+The base function in this module is ``query.query``, which
 can be used to send a query either to the central Gaia Archive or to a
 local Postgres copy of the database. When using a local copy of the
 database, the main Gaia table is best named ``gaiadr2_gaia_source``
@@ -244,6 +245,13 @@ local database and the Gaia Archive. The name and user of the local
 database can be set using the ``dbname=`` and ``user=``
 options. Queries can be timed using ``timeit=True``.
 
+Advanced tools to create and execute complex ADQL queries are included in this
+module via `query.make_query` and `query.make_simple_query`. Both functions are
+described in the following section, titled *Extended tools for querying the
+Gaia Archive* as well as this `example document
+<https://github.com/jobovy/gaia_tools/blob/master/examples/make_gaia_query_examples.ipynb>__.`
+
+
 To setup your own local database with Gaia DR2, you can follow the
 steps described about halfway down `this section
 <http://astro.utoronto.ca/~bovy/group/data.html#2mass>`__. Note that
@@ -253,7 +261,7 @@ management.
 For example, to generate the average proper motion maps displayed
 `here <https://twitter.com/jobovy/status/992455544291049472>`__, do::
 
-      pm_query= """SELECT hpx5, AVG((c1*pmra+c2*pmdec)/cos(b_rad)) AS mpmll, 
+      pm_query= """SELECT hpx5, AVG((c1*pmra+c2*pmdec)/cos(b_rad)) AS mpmll,
       AVG((-c2*pmra+c1*pmdec)/cos(b_rad)) AS mpmbb
       FROM (SELECT source_id/562949953421312 as hpx5,pmra,pmdec,radians(b) as b_rad,parallax,
       0.4559838136873017*cos(radians(dec))-0.889988068265628*sin(radians(dec))*cos(radians(ra-192.85947789477598)) as c1,
@@ -274,9 +282,9 @@ one reason to have a local copy!)
 Similarly, ``query.query`` can automatically translate queries that
 join against the 2MASS catalog. For example, the query::
 
-  twomass_query= """SELECT gaia.source_id,gaia.bp_rp, gaia.phot_bp_mean_mag as bp, gaia.phot_rp_mean_mag as rp, 
+  twomass_query= """SELECT gaia.source_id,gaia.bp_rp, gaia.phot_bp_mean_mag as bp, gaia.phot_rp_mean_mag as rp,
   gaia.phot_g_mean_mag as g, tmass.j_m as j, tmass.h_m as h, tmass.ks_m as k
-  FROM gaiadr2.gaia_source AS gaia 
+  FROM gaiadr2.gaia_source AS gaia
   INNER JOIN gaiadr2.tmass_best_neighbour AS tmass_match ON tmass_match.source_id = gaia.source_id
   INNER JOIN gaiadr1.tmass_original_valid AS tmass ON tmass.tmass_oid = tmass_match.tmass_oid
   WHERE gaia.random_index < 1000000
@@ -289,9 +297,9 @@ the 2MASS table ``tmass``).
 Similarly, ``query.query`` can automatically translate queries that
 join against the PanSTARRS1 catalog. For example, the query::
 
-  panstarrs_query= """SELECT gaia.source_id,gaia.bp_rp, gaia.phot_bp_mean_mag as bp, gaia.phot_rp_mean_mag as rp, 
+  panstarrs_query= """SELECT gaia.source_id,gaia.bp_rp, gaia.phot_bp_mean_mag as bp, gaia.phot_rp_mean_mag as rp,
   gaia.phot_g_mean_mag as g, panstarrs1.g_mean_psf_mag as pg, panstarrs1.r_mean_psf_mag as pr
-  FROM gaiadr2.gaia_source AS gaia 
+  FROM gaiadr2.gaia_source AS gaia
   INNER JOIN gaiadr2.panstarrs1_best_neighbour AS panstarrs1_match ON panstarrs1_match.source_id = gaia.source_id
   INNER JOIN gaiadr2.panstarrs1_original_valid AS panstarrs1 ON panstarrs1.obj_id = panstarrs1_match.original_ext_source_id
   WHERE gaia.random_index < 100000
@@ -331,6 +339,43 @@ removed by ``cache.clean()``). To remove absolutely all files
 removed.
 
 To turn off caching, run queries using ``use_cache=False``.
+
+
+Extended tools for querying the Gaia Archive
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Two functions are provided for creating **and** executing queries:
+``make_query`` and ``make_simple_query``. Both functions have robust default
+ADQL queries, allow for complex user input, can automatically perform *2MASS*
+and *panSTARRS1* crossmatches, and then perform the query and cache the results.
+
+The call signature of ``make_query`` is::
+
+    make_query(
+        # ADQL Options
+        WHERE=None, ORDERBY=None, FROM=None, random_index=False,
+        user_cols=None, all_columns=False,
+        gaia_mags=False, panstarrs1=False, twomass=False,
+        use_AS=False, user_ASdict=None, defaults='default',
+        inmostquery=False,
+        units=False,
+        # Query Options
+        do_query=False, local=False, cache=True, timeit=False,
+        verbose=False, dbname='catalogs', user='postgres',
+        # Extra Options
+        _tab='    ', pprint=False):
+
+``make_simple_query`` is a wrapper for ``make_query``, but optimized for
+single-layer queries. The options ``use_AS`` and ``inmostquery``
+are forced to ``True``.
+
+The ADQL options of `make_query` are:
+
+    * WHERE=None
+    * ORDERBY=None,
+    * FROM=None,
+
+
+
 
 The TGAS selection function
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -387,7 +432,7 @@ TGAS for which the selection function is determined, do::
      >>> import healpy
      >>> healpy.mollview(title="")
      >>> healpy.projplot(tgas_cat['l'][indx],tgas_cat['b'][indx],'k,',lonlat=True,alpha=0.03)
-     
+
 which gives
 
 .. image:: _readme_files/tgas_stat.png
@@ -569,7 +614,7 @@ Similar to RAVE above, we do::
     tgas= tgas[m2]
     print(len(galah_cat))
     7919
-    
+
 API
 ====
 
@@ -598,6 +643,8 @@ API
         * ``gaia_tools.query.cache.load``
         * ``gaia_tools.query.cache.nickname``
         * ``gaia_tools.query.cache.save``
+    * ``gaia_tools.query.make_query``
+    * ``gaia_tools.query.make_simple_query``
  * ``gaia_tools.select``
      * ``gaia_tools.select.tgasSelect``
          * ``__call__``
@@ -614,3 +661,16 @@ API
      * ``gaia_tools.xmatch.xmatch``
      * ``gaia_tools.xmatch.cds``
      * ``gaia_tools.xmatch.cds_matchback``
+ * ``gaia_tools.util``
+     * ``gaia_tools.json``
+        * ``gaia_tools.json.strjoinall``
+        * ``gaia_tools.json.strjoinkeys``
+        * ``gaia_tools.json.prettyprint``
+     * ``gaia_tools.table_utils``
+        * ``gaia_tools.table_utils.neg_to_nan``
+        * ``gaia_tools.table_utils.add_units_to_Table``
+        * ``gaia_tools.table_utils.add_color_col``
+        * ``gaia_tools.table_utils.add_calculated_col``
+        * ``gaia_tools.table_utils.add_abs_pm_col``
+        * ``gaia_tools.table_utils.rename_columns``
+        * ``gaia_tools.table_utils.drop_colnames``

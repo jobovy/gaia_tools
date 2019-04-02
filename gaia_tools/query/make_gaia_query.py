@@ -385,7 +385,8 @@ def make_query(WHERE=None, ORDERBY=None, FROM=None, random_index=False,
                inmostquery=False,
                units=False,
                # doing the query
-               do_query=False, local=False, cache='',
+               do_query=False, local=False, cache=True, timeit=False,
+               verbose=False, dbname='catalogs', user='postgres',
                # extra options
                _tab='    ', pprint=False):
     """Makes a whole Gaia query
@@ -439,9 +440,10 @@ def make_query(WHERE=None, ORDERBY=None, FROM=None, random_index=False,
     local: bool
         perform gaia query locally (if do_query is True)
         Default: False
-    cache: str
-        use cache.nickname
-        empty string does not save
+    cache: str, bool
+        False: does not cache
+        str or True: caches
+        if str: set as cache.nickname
     _tab: str
         the tab
         default: 4 spaces
@@ -461,6 +463,19 @@ def make_query(WHERE=None, ORDERBY=None, FROM=None, random_index=False,
     See defaults/gaia_defaults.json
     """
 
+    # SETUP
+    # cache options
+    if isinstance(cache, str):
+        use_cache = True
+    elif isinstance(cache, bool):
+        use_cache = cache
+
+    else:
+        raise ValueError('cache must be <str> or <bool>')
+
+
+
+    # QUERY CONSTRUCTION
     query, udict = _make_query_SELECT(user_cols=user_cols, use_AS=use_AS,
                                       all_columns=all_columns,
                                       gaia_mags=gaia_mags,
@@ -516,12 +531,14 @@ def make_query(WHERE=None, ORDERBY=None, FROM=None, random_index=False,
 
     # Query
     if do_query is True:
+
         print('\n\nstarting query @ {}'.format(time.strftime('m%md%dh%Hs%S')))
-        df = Query(query, local=local)
+        df = Query(query, local=local, timeit=timeit, use_cache=use_cache,
+                   verbose=verbose, dbname=dbname, user=user)
         print('query finished @ {}'.format(time.strftime('m%md%dh%Hs%S')))
 
         # caching
-        if cache != '':
+        if isinstance(cache, str):
             Cache.nickname(query, cache)
 
         # apply units
@@ -565,7 +582,10 @@ def make_simple_query(WHERE=None, ORDERBY=None, FROM=None,
                       user_cols=None, all_columns=False,
                       gaia_mags=False, panstarrs1=False, twomass=False,
                       user_ASdict=None, defaults='default', units=False,
-                      do_query=False, local=False, cache='',
+                      # do query
+                      do_query=False, local=False, cache=True, timeit=False,
+                      verbose=False, dbname='catalogs', user='postgres',
+                      # extra options
                       pprint=False):
     """make_gaia_query wrapper for single-layer queries
     with some defaults changed and options removed
@@ -638,6 +658,9 @@ def make_simple_query(WHERE=None, ORDERBY=None, FROM=None,
                       panstarrs1=panstarrs1, twomass=twomass,
                       user_ASdict=user_ASdict, inmostquery=True,
                       defaults=defaults, units=units,
+                      # do_query
                       do_query=do_query, local=local, cache=cache,
+                      timeit=timeit, verbose=verbose, dbname=dbname, user=user,
+                      # print
                       pprint=pprint)
 # /def
