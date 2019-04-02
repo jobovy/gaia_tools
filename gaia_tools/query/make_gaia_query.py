@@ -532,11 +532,10 @@ def make_query(WHERE=None, ORDERBY=None, FROM=None, random_index=None,
 
     # Query
     if do_query is True:
-
-        print('\n\nstarting query @ {}'.format(time.strftime('m%md%dh%Hs%S')))
+        print('\n\nstarting query @ {}'.format(time.strftime('m%md%dh%Hm%Ms%S')))
         df = Query(query, local=local, timeit=timeit, use_cache=use_cache,
                    verbose=verbose, dbname=dbname, user=user)
-        print('query finished @ {}'.format(time.strftime('m%md%dh%Hs%S')))
+        print('query finished @ {}'.format(time.strftime('m%md%dh%Hm%Ms%S')))
 
         # caching
         if isinstance(cache, str):
