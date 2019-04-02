@@ -89,3 +89,7 @@ ENV/
 .ropeproject
 
 *~
+
+# DS_Store
+.DS_Store
+*.DS_Store
