@@ -52,7 +52,7 @@ from astropy.table import Table, QTable
 from astropy import units as u
 
 # Custom Packages
-from . import query as Query
+from ._query import query as Query
 from . import cache as Cache
 from ..util.table_utils import add_units_to_Table
 
