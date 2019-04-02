@@ -249,7 +249,7 @@ Advanced tools to create and execute complex ADQL queries are included in this
 module via `query.make_query` and `query.make_simple_query`. Both functions are
 described in the following section, titled *Extended tools for querying the
 Gaia Archive* as well as this `example document
-<https://github.com/jobovy/gaia_tools/blob/master/examples/make_gaia_query_examples.ipynb>__.`
+<https://github.com/nstarman/gaia_tools/blob/master/examples/make_gaia_query_examples.ipynb>__.`
 
 
 To setup your own local database with Gaia DR2, you can follow the
@@ -349,7 +349,7 @@ ADQL queries, allow for complex user input, can automatically perform *2MASS*
 and *panSTARRS1* crossmatches, and then perform the query and cache the results.
 
 There is an example document demonstrating varying uses and options for both
-``make_query`` and ``make_simple_query`` in `this example document <https://github.com/jobovy/gaia_tools/blob/master/examples/make_gaia_query_examples.ipynb>__.`
+``make_query`` and ``make_simple_query`` in `this example document <https://github.com/nstarman/gaia_tools/blob/master/examples/make_gaia_query_examples.ipynb>__.`
 
 The call signature of ``make_query`` is::
 
@@ -478,9 +478,9 @@ The ADQL options of `make_query` are:
 	* <dict>: a custom defaults file
 
 	For the included columns for `default`, `empty`, and `full`, check out the 
-	`example document <https://github.com/jobovy/gaia_tools/blob/master/examples/make_gaia_query_examples.ipynb>__.`
+	`example document <https://github.com/nstarman/gaia_tools/blob/master/examples/make_gaia_query_examples.ipynb>__.`
 	for an example of a custom ``defaults`` file, see this
-	`example document <https://github.com/jobovy/gaia_tools/blob/master/examples/custom_defaults.json>__.`
+	`example document <https://github.com/nstarman/gaia_tools/blob/master/examples/custom_defaults.json>__.`
 
 
 ``inmostquery``
