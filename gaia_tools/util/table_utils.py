@@ -79,46 +79,13 @@ def neg_to_nan(df, col):
     df[col][df[col] < 0] = np.NaN
 
 
-def add_units_to_Table(df, udict=None, _subkey=None):
+def add_units_to_Table(df, udict):
     """takes Table and returns QTable
     dfQ = add_units_to_Table(df, udict)
     udict: unit dictionary
     _subkey key for dictionary if loading from JSON
         str or list of str for nested dict
     """
-    def safeget(dct, *keys):
-        """https://stackoverflow.com/a/25833661/5041184"""
-        for key in keys:
-            try:
-                dct = dct[key]
-            except KeyError:
-                return None
-        return dct
-
-    # Pre-adjusting for JSON udict
-    if udict is None:
-        dirname = os.path.dirname(__file__)
-        udict = os.path.join(dirname, 'gaia_query_defaults.json')
-        _subkey = ['units', ]
-        # Now it's a string and will trigger next 'if'
-
-    # JSON udict
-    if isinstance(udict, str):
-        with open(udict, 'r') as file:
-            defaults = json.load(file)
-            if _subkey is None:
-                pass
-            elif isinstance(_subkey, str):
-                defaults = defaults[_subkey]
-            else:  # nested
-                defaults = safeget(defaults, *_subkey)
-
-        udict = {}
-        for k, v in defaults.items():
-            if v != '':
-                udict[k] = eval(v)  # astropy units
-            else:
-                udict[k] = u.dimensionless_unscaled
 
     # Adding Units, if corresponding column in Table
     for key, unit in udict.items():
