@@ -2,7 +2,7 @@
 
 from . import cache as query_cache
 
-from .query_src import query
+from ._query import query
 from .make_gaia_query import make_query, make_simple_query
 
 query_cache.autoclean()
