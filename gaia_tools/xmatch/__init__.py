@@ -1,5 +1,6 @@
 # Tools for cross-matching catalogs
 import csv
+import sys
 import os
 import os.path
 import platform
@@ -14,6 +15,7 @@ import astropy.coordinates as acoords
 from astropy.table import Table
 from astropy import units as u
 
+from ..load.download import _ERASESTR
 def xmatch(cat1,cat2,maxdist=2,
            colRA1='RA',colDec1='DEC',epoch1=None,
            colRA2='RA',colDec2='DEC',epoch2=None,
@@ -139,27 +141,7 @@ def cds(cat,xcat='vizier:I/345/gaia2',maxdist=2,colRA='RA',colDec='DEC',
         for ii in range(len(cat)):
             wr.writerow([(cat[ii][colRA]-dra[ii]+360.) % 360.,
                           cat[ii][colDec]]-ddec[ii])
-    # Send to CDS for matching
-    result= open(resultfilename,'w')
-    try:
-        subprocess.check_call(['curl',
-                               '-X','POST',
-                               '-F','request=xmatch',
-                               '-F','distMaxArcsec=%i' % maxdist,
-                               '-F','selection=%s' % selection,
-                               '-F','RESPONSEFORMAT=csv',
-                               '-F','cat1=@%s' % os.path.basename(posfilename),
-                               '-F','colRA1=RA',
-                               '-F','colDec1=DEC',
-                               '-F','cat2=%s' % xcat,
-                               'http://cdsxmatch.u-strasbg.fr/xmatch/api/v1/sync'],
-                              stdout=result)
-    except subprocess.CalledProcessError:
-        os.remove(posfilename)
-        if os.path.exists(resultfilename):
-            result.close()
-            os.remove(resultfilename)
-    result.close()
+    _cds_match_batched(resultfilename,posfilename,maxdist,selection,xcat)
     # Directly match on input RA
     ma= cds_load(resultfilename)
     if gaia_all_columns:
@@ -195,6 +177,118 @@ inner join tap_upload.my_table as m on m.source_id = g.source_id""",
     mai= cds_matchback(cat,ma,colRA=colRA,colDec=colDec,epoch=epoch,
                        colpmRA=colpmRA,colpmDec=colpmDec)
     return (ma,mai)
+    
+def _cds_match_batched(resultfilename,posfilename,maxdist,selection,xcat,
+                       nruns_necessary=1):
+    """CDS xMatch (sometimes?) fails for large matches, because of a time-out,
+    so we recursively split until the batches are small enough to not fail"""
+    # Figure out which of the hierarchy we are running
+    try:
+        runs= ''.join([str(int(r)-1) 
+                       for r in posfilename.split('csv.')[-1].split('.')])
+    except ValueError:
+        runs= ''
+    nruns= 2**len(runs)
+    if nruns >= nruns_necessary: 
+        # Only run this level's match if we don't already know that we should
+        # be using smaller batches
+        _cds_basic_match(resultfilename,posfilename,maxdist,selection,xcat)
+        try:
+            ma= cds_load(resultfilename)
+        except ValueError: # Assume this is the time-out failure
+            pass
+        else:
+            return nruns
+    # xMatch failed because of time-out, split
+    posfilename1= posfilename+'.1'
+    posfilename2= posfilename+'.2'
+    resultfilename1= resultfilename+'.1'
+    resultfilename2= resultfilename+'.2'
+    # Figure out which of the hierarchy we are running
+    runs= ''.join([str(int(r)-1) 
+                   for r in posfilename1.split('csv.')[-1].split('.')])
+    nruns= 2**len(runs)
+    thisrun1= 1+int(runs,2)
+    thisrun2= 1+int(''.join([str(int(r)-1) 
+                   for r in posfilename2.split('csv.')[-1].split('.')]),2)
+    # Count the number of objects
+    with open(posfilename,'r') as posfile:
+        num_lines= sum(1 for line in posfile)
+    # Write the header line
+    with open(posfilename1,'w') as posfile1:
+        with open(posfilename,'r') as posfile:
+            posfile1.write(posfile.readline())
+    with open(posfilename2,'w') as posfile2:
+        with open(posfilename,'r') as posfile:
+            posfile2.write(posfile.readline())
+    # Cut in half
+    cnt= 0
+    with open(posfilename,'r') as posfile:
+        with open(posfilename1,'a') as posfile1:
+            with open(posfilename2,'a') as posfile2:
+                for line in posfile:
+                    if cnt == 0:
+                        cnt+= 1
+                        continue
+                    if cnt < num_lines//2:
+                        posfile1.write(line)
+                        cnt+= 1 # Can stop counting once this if is done
+                    else:
+                        posfile2.write(line)
+    # Run each
+    sys.stdout.write('\r'+"Working on CDS xMatch batch {} / {} ...\r"\
+                     .format(thisrun1,nruns))
+    sys.stdout.flush()      
+    nruns_necessary= _cds_match_batched(resultfilename1,posfilename1,
+                                        maxdist,selection,xcat,
+                                        nruns_necessary=nruns_necessary)
+    sys.stdout.write('\r'+"Working on CDS xMatch batch {} / {} ...\r"\
+                     .format(thisrun2,nruns))
+    sys.stdout.flush()
+    nruns_necessary= _cds_match_batched(resultfilename2,posfilename2,
+                                        maxdist,selection,xcat,
+                                        nruns_necessary=nruns_necessary)
+    sys.stdout.write('\r'+_ERASESTR+'\r')
+    sys.stdout.flush()        
+    # Combine results
+    with open(resultfilename,'w') as resultfile:
+        with open(resultfilename1,'r') as resultfile1:
+            for line in resultfile1:
+                resultfile.write(line)
+        with open(resultfilename2,'r') as resultfile2:
+            for line in resultfile2:
+                if line[0] == 'a': continue
+                resultfile.write(line)
+    # Remove intermediate files
+    os.remove(posfilename1)
+    os.remove(posfilename2)
+    os.remove(resultfilename1)
+    os.remove(resultfilename2)
+    return nruns_necessary
+
+def _cds_basic_match(resultfilename,posfilename,maxdist,selection,xcat):
+    # Send to CDS for matching
+    result= open(resultfilename,'w')
+    try:
+        subprocess.check_call(['curl',
+                               '-X','POST',
+                               '-F','request=xmatch',
+                               '-F','distMaxArcsec=%i' % maxdist,
+                               '-F','selection=%s' % selection,
+                               '-F','RESPONSEFORMAT=csv',
+                               '-F','cat1=@%s' % os.path.basename(posfilename),
+                               '-F','colRA1=RA',
+                               '-F','colDec1=DEC',
+                               '-F','cat2=%s' % xcat,
+                               'http://cdsxmatch.u-strasbg.fr/xmatch/api/v1/sync'],
+                              stdout=result)
+    except subprocess.CalledProcessError:
+        os.remove(posfilename)
+        if os.path.exists(resultfilename):
+            result.close()
+            os.remove(resultfilename)
+    result.close()
+    return None
 
 def cds_load(filename):
     if WIN32:
