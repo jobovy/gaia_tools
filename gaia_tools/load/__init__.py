@@ -496,7 +496,7 @@ def _add_astroNN_distances(data,astroNNDistancesdata):
             [astroNNDistancesdata[f].dtype for f in fields_to_append],
             usemask=False)
 
-def _add_astroNN_ages(data,astroNNAgesdata):
+def _add_astroNN_ages(data,astroNNAgesdata,rowmatched=False):
     fields_to_append= ['astroNN_age','astroNN_age_total_std',
                        'astroNN_age_predictive_std','astroNN_age_model_std']
     if True:
@@ -507,15 +507,27 @@ def _add_astroNN_ages(data,astroNNAgesdata):
         for name in data.dtype.names:
             newdata[name]= data[name]
         for f in fields_to_append:
-            newdata[f]= numpy.zeros(len(data))-9999.
+            if rowmatched:
+                newdata[f]= astroNNAgesdata[f]
+            else:
+                newdata[f]= numpy.zeros(len(data))-9999.
         data= newdata
     else:
         # This, for some reason, is the slow part (see numpy/numpy#7811
-        data= numpy.lib.recfunctions.append_fields(\
-            data,
-            fields_to_append,
-            [numpy.zeros(len(data))-9999. for f in fields_to_append],
-            usemask=False)
+        if rowmatched:
+            data= numpy.lib.recfunctions.append_fields(\
+                data,
+                fields_to_append,
+                [astroNNAgesdata[f] for f in fields_to_append],
+                [astroNNAgesdata[f].dtype for f in fields_to_append],
+                usemask=False)
+        else:
+            data= numpy.lib.recfunctions.append_fields(\
+                data,
+                fields_to_append,
+                [numpy.zeros(len(data))-9999. for f in fields_to_append],
+                usemask=False)
+    if rowmatched: return data
     # Only match primary targets
     hash1= dict(zip(data['APOGEE_ID'][(data['EXTRATARG'] & 2**4) == 0],
                     numpy.arange(len(data))[(data['EXTRATARG'] & 2**4) == 0]))
