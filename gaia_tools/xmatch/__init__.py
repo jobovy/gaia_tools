@@ -90,9 +90,11 @@ def xmatch(cat1,cat2,maxdist=2,
             d2d = numpy.ones(len(cat1)) * 1000.  # times 1000 to debug
             idx = numpy.zeros(len(cat1), dtype=int)
 
-        for unique in uniques:
+        for unique in uniques:  # loop over the class
             idx_1 = numpy.arange(cat1[colRA1].shape[0])[cat1[col_field] == unique]
             idx_2 = numpy.arange(cat2[colRA2].shape[0])[cat2[col_field] == unique]
+            if idx_1.shape[0] == 0 or idx_2.shape[0] == 0:  # the case where a class only exists in one but not the other
+                continue
 
             if swap:
                 temp_idx, temp_d2d, d3d = mc2[idx_2].match_to_catalog_sky(mc1[idx_1])
@@ -104,6 +106,8 @@ def xmatch(cat1,cat2,maxdist=2,
                 m1 = numpy.arange(len(cat1))
                 idx[cat1[col_field] == unique] = idx_2[temp_idx]
                 d2d[cat1[col_field] == unique] = temp_d2d
+
+        d2d = d2d * temp_d2d.unit  # make sure finally we have an unit on d2d array s.t. "<" operation can complete
 
     else:
         if swap:
