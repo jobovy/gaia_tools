@@ -20,7 +20,8 @@ def xmatch(cat1,cat2,maxdist=2,
            colRA1='RA',colDec1='DEC',epoch1=None,
            colRA2='RA',colDec2='DEC',epoch2=None,
            colpmRA2='pmra',colpmDec2='pmdec',
-           swap=False):
+           swap=False,
+           col_field=None):
     """
     NAME:
        xmatch
@@ -39,6 +40,7 @@ def xmatch(cat1,cat2,maxdist=2,
        colpmRA2= ('pmra') name of the tag in cat2 with the proper motion in right ascension in degree in cat2 (assumed to be ICRS; includes cos(Dec)) [only used when epochs are different]
        colpmDec2= ('pmdec') name of the tag in cat2 with the proper motion in declination in degree in cat2 (assumed to be ICRS) [only used when epochs are different]
        swap= (False) if False, find closest matches in cat2 for each cat1 source, if False do the opposite (important when one of the catalogs has duplicates)
+       col_field= (None) if None, simply do cross-matching, if a string, then do cross-match with additional matching in that catagory
     OUTPUT:
        (index into cat1 of matching objects,
         index into cat2 of matching objects,
@@ -46,6 +48,7 @@ def xmatch(cat1,cat2,maxdist=2,
     HISTORY:
        2016-09-12 - Written - Bovy (UofT)
        2016-09-21 - Account for Gaia epoch 2015 - Bovy (UofT)
+       2019-07-07 - add additional catalog field matching - Leung (UofT)
     """
     if epoch1 is None:
         if 'ref_epoch' in cat1.dtype.fields:
@@ -72,12 +75,44 @@ def xmatch(cat1,cat2,maxdist=2,
                           unit=(u.degree, u.degree),frame='icrs')
     mc2= acoords.SkyCoord(cat2[colRA2]-dra,cat2[colDec2]-ddec,
                           unit=(u.degree, u.degree),frame='icrs')
-    if swap:
-        idx,d2d,d3d = mc2.match_to_catalog_sky(mc1)
-        m1= numpy.arange(len(cat2))
+    if col_field is not None:
+        try:  # check if the field actually exists in both cat1/cat2
+            cat1[col_field]
+            cat2[col_field]
+        except KeyError:  # python 2/3 format string
+            raise KeyError("'%s' does not exist in both catalog" % col_field)
+
+        uniques = numpy.unique(cat1[col_field])
+        if swap:
+            d2d = numpy.ones(len(cat2)) * 1000.  # times 1000 to debug
+            idx = numpy.zeros(len(cat2), dtype=int)
+        else:
+            d2d = numpy.ones(len(cat1)) * 1000.  # times 1000 to debug
+            idx = numpy.zeros(len(cat1), dtype=int)
+
+        for unique in uniques:
+            idx_1 = numpy.arange(cat1[colRA1].shape[0])[cat1[col_field] == unique]
+            idx_2 = numpy.arange(cat2[colRA2].shape[0])[cat2[col_field] == unique]
+
+            if swap:
+                temp_idx, temp_d2d, d3d = mc2[idx_2].match_to_catalog_sky(mc1[idx_1])
+                m1 = numpy.arange(len(cat2))
+                idx[cat2[col_field] == unique] = idx_1[temp_idx]
+                d2d[cat2[col_field] == unique] = temp_d2d
+            else:
+                temp_idx, temp_d2d, d3d = mc1[idx_1].match_to_catalog_sky(mc2[idx_2])
+                m1 = numpy.arange(len(cat1))
+                idx[cat1[col_field] == unique] = idx_2[temp_idx]
+                d2d[cat1[col_field] == unique] = temp_d2d
+
     else:
-        idx,d2d,d3d = mc1.match_to_catalog_sky(mc2)
-        m1= numpy.arange(len(cat1))
+        if swap:
+            idx,d2d,d3d = mc2.match_to_catalog_sky(mc1)
+            m1= numpy.arange(len(cat2))
+        else:
+            idx,d2d,d3d = mc1.match_to_catalog_sky(mc2)
+            m1= numpy.arange(len(cat1))
+
     mindx= d2d < maxdist*u.arcsec
     m1= m1[mindx]
     m2= idx[mindx]
@@ -85,6 +120,7 @@ def xmatch(cat1,cat2,maxdist=2,
         return (m2,m1,d2d[mindx])
     else:
         return (m1,m2,d2d[mindx])
+
 
 def cds(cat,xcat='vizier:I/345/gaia2',maxdist=2,colRA='RA',colDec='DEC',
         selection='best',epoch=None,colpmRA='pmra',colpmDec='pmdec',
@@ -177,19 +213,19 @@ inner join tap_upload.my_table as m on m.source_id = g.source_id""",
     mai= cds_matchback(cat,ma,colRA=colRA,colDec=colDec,epoch=epoch,
                        colpmRA=colpmRA,colpmDec=colpmDec)
     return (ma,mai)
-    
+
 def _cds_match_batched(resultfilename,posfilename,maxdist,selection,xcat,
                        nruns_necessary=1):
     """CDS xMatch (sometimes?) fails for large matches, because of a time-out,
     so we recursively split until the batches are small enough to not fail"""
     # Figure out which of the hierarchy we are running
     try:
-        runs= ''.join([str(int(r)-1) 
+        runs= ''.join([str(int(r)-1)
                        for r in posfilename.split('csv.')[-1].split('.')])
     except ValueError:
         runs= ''
     nruns= 2**len(runs)
-    if nruns >= nruns_necessary: 
+    if nruns >= nruns_necessary:
         # Only run this level's match if we don't already know that we should
         # be using smaller batches
         _cds_basic_match(resultfilename,posfilename,maxdist,selection,xcat)
@@ -205,11 +241,11 @@ def _cds_match_batched(resultfilename,posfilename,maxdist,selection,xcat,
     resultfilename1= resultfilename+'.1'
     resultfilename2= resultfilename+'.2'
     # Figure out which of the hierarchy we are running
-    runs= ''.join([str(int(r)-1) 
+    runs= ''.join([str(int(r)-1)
                    for r in posfilename1.split('csv.')[-1].split('.')])
     nruns= 2**len(runs)
     thisrun1= 1+int(runs,2)
-    thisrun2= 1+int(''.join([str(int(r)-1) 
+    thisrun2= 1+int(''.join([str(int(r)-1)
                    for r in posfilename2.split('csv.')[-1].split('.')]),2)
     # Count the number of objects
     with open(posfilename,'r') as posfile:
@@ -238,7 +274,7 @@ def _cds_match_batched(resultfilename,posfilename,maxdist,selection,xcat,
     # Run each
     sys.stdout.write('\r'+"Working on CDS xMatch batch {} / {} ...\r"\
                      .format(thisrun1,nruns))
-    sys.stdout.flush()      
+    sys.stdout.flush()
     nruns_necessary= _cds_match_batched(resultfilename1,posfilename1,
                                         maxdist,selection,xcat,
                                         nruns_necessary=nruns_necessary)
@@ -249,7 +285,7 @@ def _cds_match_batched(resultfilename,posfilename,maxdist,selection,xcat,
                                         maxdist,selection,xcat,
                                         nruns_necessary=nruns_necessary)
     sys.stdout.write('\r'+_ERASESTR+'\r')
-    sys.stdout.flush()        
+    sys.stdout.flush()
     # Combine results
     with open(resultfilename,'w') as resultfile:
         with open(resultfilename1,'r') as resultfile1:
