@@ -83,11 +83,11 @@ def xmatch(cat1,cat2,maxdist=2,
             raise KeyError("'%s' does not exist in both catalog" % col_field)
 
         uniques = numpy.unique(cat1[col_field])
-        if swap:
-            d2d = numpy.ones(len(cat2)) * 1000.  # times 1000 to debug
+        if swap:  # times neg one to indicate those indices untouch will be noticed at the end and filtered out
+            d2d = numpy.ones(len(cat2)) * -1.
             idx = numpy.zeros(len(cat2), dtype=int)
         else:
-            d2d = numpy.ones(len(cat1)) * 1000.  # times 1000 to debug
+            d2d = numpy.ones(len(cat1)) * -1.
             idx = numpy.zeros(len(cat1), dtype=int)
 
         for unique in uniques:  # loop over the class
@@ -117,7 +117,8 @@ def xmatch(cat1,cat2,maxdist=2,
             idx,d2d,d3d = mc1.match_to_catalog_sky(mc2)
             m1= numpy.arange(len(cat1))
 
-    mindx= d2d < maxdist*u.arcsec
+    # to make sure filtering out all neg ones which are untouched
+    mindx= ((d2d < maxdist*u.arcsec) & (0.*u.arcsec <= d2d))
     m1= m1[mindx]
     m2= idx[mindx]
     if swap:

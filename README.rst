@@ -208,10 +208,10 @@ cross-match the APOGEE-RC data and TGAS do::
 If your catalogs contain multiple telescope/observer and you want to do cross-matching with additional matching to
 those telescopes/observer, you can do it by specifying ``col_field`` and here is an example to demonstrate the usage::
 
-        from gaia_tools import xmatch
+        from gaia_tools import xmatch  # use xmatch_v2 branch
         from astropy.table import QTable
 
-        mc1 = {'RA': [10, 10, 30, 10], 'DEC': [10, 10, 30, 10], 'LENS': ['A', 'B', 'A', 'A']}
+        mc1 = {'RA': [10, 10, 30, 10, 10], 'DEC': [10, 10, 30, 10, 10], 'LENS': ['A', 'B', 'A', 'C', 'A']}
         mc2 = {'RA': [10, 20, 10, 20, 30], 'DEC': [10, 20, 10, 20, 30], 'LENS': ['A', 'A', 'B', 'B', 'A']}
 
         cat1 = QTable()
@@ -223,8 +223,7 @@ those telescopes/observer, you can do it by specifying ``col_field`` and here is
             cat2[key] = mc2[key]
 
         idx1, idx2, sep = xmatch.xmatch(cat1, cat2, col_field='LENS')
-        print(idx1)
-        # array([0, 1, 2, 3])
+        # array([0, 1, 2, 4])
         print(idx2)
         # array([0, 2, 4, 0])
 
