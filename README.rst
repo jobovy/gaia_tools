@@ -205,24 +205,27 @@ cross-match the APOGEE-RC data and TGAS do::
 	    aprc= aprc[m1]
 	    tgas= tgas[m2]
 
-If your catalogs contain multiple telescope/observer and you want to do cross-matching with additional matching to
-those telescopes/observer, you can do it by specifying ``col_field`` and here is an example to demonstrate the usage::
+If your catalogs contain duplicates that differ in another property
+and you want to match on both position and the other property, you can
+match both by specifying ``col_field``. An example use case is for
+APOGEE DR16 which contains stars that are observed by two different
+telescopes (the APO 2.5m in the northern hemisphere and the LCO 2.5m
+in the southern hemisphere). An example to
+demonstrate the usage::
 
-        from gaia_tools import xmatch  # use xmatch_v2 branch
+        from gaia_tools import xmatch
+	# Create simple example data catalogs
         from astropy.table import QTable
-
         mc1 = {'RA': [10, 10, 30, 10, 10], 'DEC': [10, 10, 30, 10, 10], 'LENS': ['A', 'B', 'A', 'C', 'A']}
         mc2 = {'RA': [10, 20, 10, 20, 30], 'DEC': [10, 20, 10, 20, 30], 'LENS': ['A', 'A', 'B', 'B', 'A']}
-
         cat1 = QTable()
         for key in mc1.keys():
             cat1[key] = mc1[key]
-
         cat2 = QTable()
         for key in mc2.keys():
             cat2[key] = mc2[key]
-
-        idx1, idx2, sep = xmatch.xmatch(cat1, cat2, col_field='LENS')
+	# Match mc1 and mc2 on (RA,Dec) and LENS
+        idx1, idx2, sep = xmatch.xmatch(cat1,cat2,col_field='LENS')
         # array([0, 1, 2, 4])
         print(idx2)
         # array([0, 2, 4, 0])

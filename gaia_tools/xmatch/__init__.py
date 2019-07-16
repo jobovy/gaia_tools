@@ -40,7 +40,7 @@ def xmatch(cat1,cat2,maxdist=2,
        colpmRA2= ('pmra') name of the tag in cat2 with the proper motion in right ascension in degree in cat2 (assumed to be ICRS; includes cos(Dec)) [only used when epochs are different]
        colpmDec2= ('pmdec') name of the tag in cat2 with the proper motion in declination in degree in cat2 (assumed to be ICRS) [only used when epochs are different]
        swap= (False) if False, find closest matches in cat2 for each cat1 source, if False do the opposite (important when one of the catalogs has duplicates)
-       col_field= (None) if None, simply do cross-matching, if a string, then do cross-match with additional matching in that catagory
+       col_field= (None) if None, simply cross-match on RA and Dec; if a string, then cross-match on RA and Dec with additional matching in the data tag specified by the string
     OUTPUT:
        (index into cat1 of matching objects,
         index into cat2 of matching objects,
