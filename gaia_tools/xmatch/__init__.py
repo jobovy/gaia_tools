@@ -65,6 +65,9 @@ def xmatch(cat1,cat2,maxdist=2,
         dra=cat2[colpmRA2]/numpy.cos(cat2[colDec2]/180.*numpy.pi)\
             /3600000.*depoch
         ddec= cat2[colpmDec2]/3600000.*depoch
+        # Don't shift objects with non-existing proper motion
+        dra[numpy.isnan(cat2[colpmRA2])]= 0.
+        ddec[numpy.isnan(cat2[colpmDec2])]= 0.
     else:
         dra= 0.
         ddec= 0.
@@ -126,6 +129,9 @@ def cds(cat,xcat='vizier:I/345/gaia2',maxdist=2,colRA='RA',colDec='DEC',
         dra=cat[colpmRA]/numpy.cos(cat[colDec]/180.*numpy.pi)\
             /3600000.*depoch
         ddec= cat[colpmDec]/3600000.*depoch
+        # Don't shift objects with non-existing proper motion
+        dra[numpy.isnan(cat[colpmRA])]= 0.
+        ddec[numpy.isnan(cat[colpmDec])]= 0.
     else:
         dra= numpy.zeros(len(cat))
         ddec= numpy.zeros(len(cat))
@@ -348,6 +354,9 @@ def cds_matchback(cat,xcat,colRA='RA',colDec='DEC',selection='best',
         dra=cat[colpmRA]/numpy.cos(cat[colDec]/180.*numpy.pi)\
             /3600000.*depoch
         ddec= cat[colpmDec]/3600000.*depoch
+        # Don't shift objects with non-existing proper motion
+        dra[numpy.isnan(cat[colpmRA])]= 0.
+        ddec[numpy.isnan(cat[colpmDec])]= 0.
     else:
         dra= numpy.zeros(len(cat))
         ddec= numpy.zeros(len(cat))
