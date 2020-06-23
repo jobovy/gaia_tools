@@ -342,7 +342,7 @@ def _make_query_WHERE(WHERE, random_index=None):
     ------
     WHERE: str (or None)
         ADQL `WHERE' argument
-    random_index: int or None
+    random_index: int or None  (default None)
         the gaia.random_index for fast querying
     """
 

@@ -195,7 +195,7 @@ class tgasSelect(object):
                 numpy.nanmedian((nstartgas/nstar2mass)[level_indx,ii])
             # Spline interpolate
             spl_indx= (exs > 4.25)*(exs < 13.5)\
-                *(True-numpy.isnan((nstartgas/nstar2mass)[:,ii]))
+                *(True^numpy.isnan((nstartgas/nstar2mass)[:,ii]))
             tsf_spline= interpolate.UnivariateSpline(\
                 exs[spl_indx],(nstartgas/nstar2mass)[spl_indx,ii],
                 w=1./((numpy.sqrt(nstartgas)/nstar2mass)[spl_indx,ii]+0.02),
@@ -278,7 +278,7 @@ class tgasSelect(object):
         # Sky cut
         data_sid= (data['source_id']\
                        /2**(35.+2*(12.-numpy.log2(_BASE_NSIDE)))).astype('int')
-        skyindx= True-self._exclude_mask_skyonly[data_sid]
+        skyindx= True^self._exclude_mask_skyonly[data_sid]
         # Color, magnitude cuts
         cmagindx= (j >= self._jmin)*(j <= self._jmax)\
             *(j-k >= self._jkmin)*(j-k <= self._jkmax)
@@ -645,7 +645,7 @@ class tgasEffectiveSelect(object):
                   linearDist != self._linearDist_4vol)):
             theta,phi= healpy.pix2ang(\
                 _BASE_NSIDE,numpy.arange(_BASE_NPIX)\
-                    [True-self._tgasSel._exclude_mask_skyonly],nest=True)
+                    [True^self._tgasSel._exclude_mask_skyonly],nest=True)
             self._ra_cen_4vol= 180./numpy.pi*phi
             self._dec_cen_4vol= 90.-180./numpy.pi*theta
             if linearDist:
