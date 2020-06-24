@@ -70,6 +70,12 @@ __status__ = "Production"
 
 
 #############################################################################
+# Parameters
+
+_defaults_dir = os.path.join(os.path.dirname(__file__), "defaults")
+
+
+#############################################################################
 # Code
 
 
@@ -105,8 +111,7 @@ def _make_query_defaults(fpath='default'):
 
     # loading file
     elif fpath in ('default', 'empty', 'full'):
-        dirname = os.path.dirname(__file__)
-        dirpath = os.path.join(dirname, 'defaults/gaia_defaults.json')
+        dirpath = os.path.join(_defaults_dir, "gaia_defaults.json")
 
         with open(dirpath, 'r') as file:
             df = json.load(file)
