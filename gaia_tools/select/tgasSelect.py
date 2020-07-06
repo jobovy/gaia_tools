@@ -47,7 +47,7 @@ import os, os.path
 import hashlib
 import tqdm
 import numpy
-from scipy import interpolate
+from scipy import interpolate, optimize
 import astropy.coordinates as apco
 import healpy
 from galpy.util import bovy_plot, bovy_coords, multi
@@ -200,22 +200,30 @@ class tgasSelect(object):
                 exs[spl_indx],(nstartgas/nstar2mass)[spl_indx,ii],
                 w=1./((numpy.sqrt(nstartgas)/nstar2mass)[spl_indx,ii]+0.02),
                 k=3,ext=1,s=numpy.sum(spl_indx)/4.)
-            # Determine where the sf hits 50% completeness 
+            # Determine where the sf hits 50% completeness
             # at the bright and faint end
             bindx= spl_indx*(exs < 9.)
             xs= numpy.linspace(numpy.amin(exs[bindx]),numpy.amax(exs[bindx]),
                                1001)
-            sf_props[ii,1]=\
-                interpolate.InterpolatedUnivariateSpline(tsf_spline(xs),
-                                                         xs,k=1)(0.5)
+            try:
+                sf_props[ii,1]=\
+                    interpolate.InterpolatedUnivariateSpline(tsf_spline(xs),
+                                                             xs,k=1)(0.5)
+            except ValueError: # Nowadays, sometimes non-monotonic, just fit
+                sf_props[ii,1]= optimize.brentq(lambda x: tsf_spline(x)-0.5,
+                                                exs[0],9.)
             # Faint
             findx= spl_indx*(exs > 9.)\
                 *((nstartgas/nstar2mass)[:,ii]*sf_props[ii,0] < 0.8)
             xs= numpy.linspace(numpy.amin(exs[findx]),numpy.amax(exs[findx]),
                                1001)
-            sf_props[ii,2]=\
-                interpolate.InterpolatedUnivariateSpline(tsf_spline(xs)[::-1],
-                                                         xs[::-1],k=1)(0.5)
+            try:
+                sf_props[ii,2]=\
+                    interpolate.InterpolatedUnivariateSpline(\
+                                tsf_spline(xs)[::-1],xs[::-1],k=1)(0.5)
+            except ValueError: # Nowadays, sometimes non-monotonic, just fit
+                sf_props[ii,2]= optimize.brentq(lambda x: tsf_spline(x)-0.5,
+                                                9.,exs[-1])
             sf_splines.append(tsf_spline)
         self._sf_splines= sf_splines
         self._sf_props= sf_props
