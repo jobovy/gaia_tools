@@ -164,7 +164,8 @@ class tgasSelect(object):
         self._jmax= jmax
         self._jkmin= jkmin
         self._jkmax= jkmax
-        jtbins= (numpy.amax(_2mc[0])-numpy.amin(_2mc[0]))/0.1+1
+        jtbins= int(numpy.floor(
+            (numpy.amax(_2mc[0])-numpy.amin(_2mc[0]))/0.1+1))
         nstar2mass, edges= numpy.histogramdd(\
             _2mc[:3].T,bins=[jtbins,3,_BASE_NPIX],
             range=[[numpy.amin(_2mc[0])-0.05,numpy.amax(_2mc[0])+0.05],
