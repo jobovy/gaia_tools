@@ -202,6 +202,7 @@ def vizier(cat,filePath,ReadMePath,
     return None
 
 def _download_file(downloadPath,filePath,verbose=False,spider=False):
+    downloadPath = downloadPath.replace(os.sep, '/')  # platform independent download path
     sys.stdout.write('\r'+"Downloading file %s ...\r" \
                          % (os.path.basename(filePath)))
     sys.stdout.flush()
