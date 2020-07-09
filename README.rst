@@ -47,8 +47,8 @@ or in your home directory with
 
 ``python setup.py install --user``
 
-DEPENDENCIES AND PYTHON VERSIONS
-=================================
+DEPENDENCIES, PYTHON VERSIONS, AND OPERATING SYSTEMS
+====================================================
 
 This package requires `NumPy <http://www.numpy.org/>`__, `astropy
 <http://www.astropy.org/>`__, `astroquery
@@ -74,6 +74,8 @@ take precedence over `astropy
 This package should work in both python 2 and 3. Please open an `issue
 <https://github.com/jobovy/gaia_tools/issues>`__ if you find a part of the
 code that does not support python 3.
+
+Note that this code is primarily developed on UNIX-like systems. While most of the code runs on Windows without special handling, it is possible that some parts of the code are incompatible with Windows. Please open an `issue <https://github.com/jobovy/gaia_tools/issues>`__ if you find any part of the code that does not work on Windows, or open a `pull request <https://github.com/jobovy/gaia_tools/pulls>`__ to fix it.
 
 DATA FILES AND ENVIRONMENT VARIABLES
 =====================================
