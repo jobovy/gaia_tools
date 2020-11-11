@@ -78,9 +78,13 @@ def astroNNAges(dr=14,verbose=True,spider=False):
             filePath,verbose=verbose,spider=spider)
     return None    
     
-def galah(dr=2,verbose=True,spider=False):
+def galah(dr=3,ages=False,dynamics=False,verbose=True,spider=False):
     if dr == 1 or dr == '1':
         filePath, ReadMePath= path.galahPath(dr=dr)
+    elif ages:
+        filePath= path.galahAgesPath(dr=dr)
+    elif dynamics:
+        filePath= path.galahDynamicsPath(dr=dr)
     else:
         filePath= path.galahPath(dr=dr)
     if os.path.exists(filePath): return None
@@ -97,6 +101,11 @@ def galah(dr=2,verbose=True,spider=False):
             os.remove(filePath.replace('DR2.1','DR2'))
         _download_file(\
           os.path.join('https://datacentral.aao.gov.au/teamdata/GALAH/public/',
+                       os.path.basename(filePath)),
+            filePath,verbose=verbose,spider=spider)
+    elif dr == 3 or dr == '3':
+        _download_file(\
+          os.path.join('https://cloud.datacentral.org.au/teamdata/GALAH/public/GALAH_DR3/',
                        os.path.basename(filePath)),
             filePath,verbose=verbose,spider=spider)
     return None    

@@ -5,6 +5,7 @@ from operator import itemgetter
 import numpy
 import numpy.lib.recfunctions
 import astropy.io.ascii
+from astropy.table import join as table_join
 try:
     import fitsio
     fitsread= fitsio.read
@@ -290,7 +291,9 @@ def gaiarv(dr=2):
         [fitsread(filePath,ext=1) for filePath in filePaths],
         autoconvert=True)
 
-def galah(dr=2,xmatch=None,**kwargs):
+def galah(dr=3,ages=False,ages_join_type='inner',
+          dynamics=False,dynamics_join_type='inner',
+          xmatch=None,**kwargs):
     """
     NAME:
        galah
@@ -298,6 +301,10 @@ def galah(dr=2,xmatch=None,**kwargs):
        Load the GALAH data
     INPUT:
        dr= (2) data release
+       ages= (False; DR >= 3) if True, add ages and other info from VAC
+       ages_join_type= ('inner') type of table join to do between the main catalog and the ages VAC: 'inner' returns only the overlap, 'left' returns all main with masked ages VAC entries for those not in the overlap
+       dynamics= (False; DR >= 3) if True, add dynamics info from VAC
+       dynamics_join_type= ('inner') type of table join to do between the main catalog and the dynamics VAC: 'inner' returns only the overlap, 'left' returns all main with masked dynamics VAC entries for those not in the overlap. Note that in DR3 at least, all main catalog entries are in the dynamics VAC, so the type of merge doesn't matter
        xmatch= (None) if set, cross-match against a Vizier catalog (e.g., vizier:I/345/gaia2 for Gaia DR2) using gaia_tools.xmatch.cds and return the overlap
        +gaia_tools.xmatch.cds keywords
     OUTPUT:
@@ -306,6 +313,7 @@ def galah(dr=2,xmatch=None,**kwargs):
        2016-09-12 - Written - Bovy (UofT)
        2018-04-19 - Updated for DR2 - Bovy (UofT)
        2018-05-08 - Add xmatch - Bovy (UofT)
+       2020-11-11 - Updated for DR3 and added ages/dynamics VACs - Bovy (UofT)
     """
     if dr == 1 or dr == '1':
         filePath, ReadMePath= path.galahPath(dr=dr)
@@ -319,13 +327,32 @@ def galah(dr=2,xmatch=None,**kwargs):
         data['dec']._fill_value= numpy.array([-9999.99])
     else:
         data= fitsread(filePath,1)
+    if ages:
+        filePath= path.galahAgesPath(dr=dr)
+        if not os.path.exists(filePath):
+            download.galah(dr=dr,ages=True)
+        ages= fitsread(filePath,1)
+        data= table_join(data,ages,keys='sobject_id',
+                         metadata_conflicts='silent',
+                         join_type=ages_join_type)
+    if dynamics:
+        filePath= path.galahDynamicsPath(dr=dr)
+        if not os.path.exists(filePath):
+            download.galah(dr=dr,dynamics=True)
+        dynamics= fitsread(filePath,1)
+        data= table_join(data,dynamics,keys='sobject_id',
+                         metadata_conflicts='silent',
+                         join_type=dynamics_join_type)
     if not xmatch is None:
         if dr == 1  or dr == '1':
             kwargs['colRA']= kwargs.get('colRA','RA')
             kwargs['colDec']= kwargs.get('colDec','dec')
-        else:
+        elif dr == 2  or dr == '2':
             kwargs['colRA']= kwargs.pop('colRA','raj2000')
             kwargs['colDec']= kwargs.pop('colDec','dej2000')
+        else:
+            kwargs['colRA']= kwargs.pop('colRA','ra')
+            kwargs['colDec']= kwargs.pop('colDec','dec')
         ma,mai= _xmatch_cds(data,xmatch,filePath,**kwargs)
         return (data[mai],ma)
     else:

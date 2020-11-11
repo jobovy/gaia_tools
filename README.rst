@@ -109,10 +109,12 @@ Similarly, you can load the RV subsample of `Gaia DR2 <https://www.cosmos.esa.in
 
 which again downloads the data upon the first invocation (and also converts it to fits format for faster access in the futures; not that the original CSV files are retained under ``$GAIA_TOOLS_DATA/Gaia/gdr2/gaia_source_with_rv/csv`` and you might want to delete these to save space).
 
-``gaia_tools`` can also load data from various additional surveys, for example, for the `GALAH <https://galah-survey.org/>`__ survey's DR2 data, do::
+``gaia_tools`` can also load data from various additional surveys, for example, for the `GALAH <https://galah-survey.org/>`__ survey's DR3 data, do (older DRs are also available)::
 
     galah_cat= gload.galah()
 
+GALAH DR3 also has Value-Added Catalogs with ages and orbital info (computed using `galpy <https://www.galpy.org>`__!), which can be loaded using the ``ages=True`` and ``dynamics=True`` keywords.
+    
 Through an interface to the more detailed `apogee
 <https://github.com/jobovy/apogee>`__ package, you can also load
 various APOGEE data files, for example::
@@ -235,7 +237,7 @@ demonstrate the usage::
 Further, it is possible to cross-match any catalog to the catalogs in
 the CDS database using the `CDS cross-matching service
 <http://cdsxmatch.u-strasbg.fr/xmatch>`__. For example, to match the
-GALAH catalog to the Gaia DR2 catalog, do the following::
+GALAH DR2 catalog to the Gaia DR2 catalog, do the following::
 
    gaia2_matches, matches_indx= xmatch.cds(galah_cat,colRA='raj2000',colDec='dej2000',xcat='vizier:I/345/gaia2')
    print(galah_cat['raj2000'][matches_indx[0]],gaia2_matches['ra_epoch2000'][0],gaia2_matches['pmra'][matches_indx[0]],gaia2_matches['pmdec'][matches_indx[0]])

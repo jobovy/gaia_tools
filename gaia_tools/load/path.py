@@ -87,7 +87,7 @@ def gaiaSourcePath(dr=1,format='fits'):
                                       'GaiaSource_*.%s' % extension))
     return out
 
-def galahPath(dr=2):
+def galahPath(dr=3):
     if dr == 1 or dr == '1':
         return (os.path.join(_GAIA_TOOLS_DATA,'galah','DR%i' % dr,
                              'catalog.dat'),
@@ -95,6 +95,19 @@ def galahPath(dr=2):
     elif dr == 2 or dr == '2' or dr == 2.1 or dr == '2.1':
         return os.path.join(_GAIA_TOOLS_DATA,'galah','DR%i' % int(dr),
                             'GALAH_DR2.1_catalog.fits')
+    elif dr == 3 or dr == '3':
+        return os.path.join(_GAIA_TOOLS_DATA,'galah','DR%i' % int(dr),
+                            'GALAH_DR3_main_allstar_v1.fits')
+
+def galahAgesPath(dr=3):
+    if dr == 3 or dr == '3':
+        return os.path.join(_GAIA_TOOLS_DATA,'galah','DR%i' % int(dr),
+                            'GALAH_DR3_VAC_ages_v1.fits')
+
+def galahDynamicsPath(dr=3):
+    if dr == 3 or dr == '3':
+        return os.path.join(_GAIA_TOOLS_DATA,'galah','DR%i' % int(dr),
+                            'GALAH_DR3_VAC_dynamics_v1.fits')
 
 def lamostPath(dr=2,cat='all'):
     if cat.lower() == 'all':
