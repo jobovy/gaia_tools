@@ -204,8 +204,8 @@ def cds(cat,xcat='vizier:I/350/gaiaedr3',maxdist=2,colRA='RA',colDec='DEC',
         try:
             job= Gaia.launch_job_async(
                 """select g.*, m.RA as mRA, m.DEC as mDEC
-from .gaia_source as g
-inner join tap_upload.my_table as m on m.source_id = g.source_id""",
+from %s.gaia_source as g
+inner join tap_upload.my_table as m on m.source_id = g.source_id""" % table_identifier,
                                        upload_resource=xmlfilename,
                                        upload_table_name="my_table")
             ma= job.get_results()
