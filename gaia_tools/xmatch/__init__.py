@@ -130,7 +130,7 @@ def xmatch(cat1,cat2,maxdist=2,
         return (m1,m2,d2d[mindx])
 
 
-def cds(cat,xcat='vizier:I/345/gaia2',maxdist=2,colRA='RA',colDec='DEC',
+def cds(cat,xcat='vizier:I/350/gaiaedr3',maxdist=2,colRA='RA',colDec='DEC',
         selection='best',epoch=None,colpmRA='pmra',colpmDec='pmdec',
         savefilename=None,gaia_all_columns=False):
     """
@@ -140,7 +140,7 @@ def cds(cat,xcat='vizier:I/345/gaia2',maxdist=2,colRA='RA',colDec='DEC',
        Cross-match against a catalog in the CDS archive using the CDS cross-matching service (http://cdsxmatch.u-strasbg.fr/xmatch); uses the curl interface
     INPUT:
        cat - a catalog to cross match, requires 'RA' and 'DEC' keywords (see below)
-       xcat= ('vizier:I/345/gaia2') name of the catalog to cross-match against, in a format understood by the CDS cross-matching service (see http://cdsxmatch.u-strasbg.fr/xmatch/doc/available-tables.html; things like 'vizier:Tycho2' or 'vizier:I/345/gaia2')
+       xcat= ('vizier:I/350/gaiaedr3') name of the catalog to cross-match against, in a format understood by the CDS cross-matching service (see http://cdsxmatch.u-strasbg.fr/xmatch/doc/available-tables.html; things like 'vizier:Tycho2' or 'vizier:I/345/gaia2')
        maxdist= (2) maximum distance in arcsec
        colRA= ('RA') name of the tag in cat with the right ascension
        colDec= ('DEC') name of the tag in cat with the declination
@@ -199,16 +199,18 @@ def cds(cat,xcat='vizier:I/345/gaia2',maxdist=2,colRA='RA',colDec='DEC',
                    dtype=('int64','float64','float64'))
         xmlfilename= tempfile.mktemp('.xml',dir=os.getcwd())
         tab.write(xmlfilename,format='votable')
+        #get the data release....
+        table_identifier = xcat.split('/')[-1]
         try:
             job= Gaia.launch_job_async(
                 """select g.*, m.RA as mRA, m.DEC as mDEC
-from gaiadr2.gaia_source as g 
-inner join tap_upload.my_table as m on m.source_id = g.source_id""",
+from %s.gaia_source as g
+inner join tap_upload.my_table as m on m.source_id = g.source_id""" % table_identifier,
                                        upload_resource=xmlfilename,
                                        upload_table_name="my_table")
             ma= job.get_results()
         except:
-            print("gaia_tools.xmath.cds failed to retrieve all gaiadr2 columns, returning just the default returned by the CDS xMatch instead...")
+            print("gaia_tools.xmath.cds failed to retrieve all gaia columns, returning just the default returned by the CDS xMatch instead...")
         else:
             ma.rename_column('mra','RA')
             ma.rename_column('mdec','DEC')
@@ -401,7 +403,7 @@ def cds_matchback(cat,xcat,colRA='RA',colDec='DEC',selection='best',
     else:
         dra= numpy.zeros(len(cat))
         ddec= numpy.zeros(len(cat))
-    # xmatch to v. small diff., because match is against *original* coords, 
+    # xmatch to v. small diff., because match is against *original* coords,
     # not matched coords in CDS
     mc1= acoords.SkyCoord(cat[colRA]-dra,cat[colDec]-ddec,
                           unit=(u.degree, u.degree),frame='icrs')
