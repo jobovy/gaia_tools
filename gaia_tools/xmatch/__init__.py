@@ -130,7 +130,7 @@ def xmatch(cat1,cat2,maxdist=2,
         return (m1,m2,d2d[mindx])
 
 
-def cds(cat,xcat='vizier:I/345/gaia2',maxdist=2,colRA='RA',colDec='DEC',
+def cds(cat,xcat='vizier:I/350/gaiaedr3',maxdist=2,colRA='RA',colDec='DEC',
         selection='best',epoch=None,colpmRA='pmra',colpmDec='pmdec',
         savefilename=None,gaia_all_columns=False):
     """
@@ -140,7 +140,7 @@ def cds(cat,xcat='vizier:I/345/gaia2',maxdist=2,colRA='RA',colDec='DEC',
        Cross-match against a catalog in the CDS archive using the CDS cross-matching service (http://cdsxmatch.u-strasbg.fr/xmatch); uses the curl interface
     INPUT:
        cat - a catalog to cross match, requires 'RA' and 'DEC' keywords (see below)
-       xcat= ('vizier:I/345/gaia2') name of the catalog to cross-match against, in a format understood by the CDS cross-matching service (see http://cdsxmatch.u-strasbg.fr/xmatch/doc/available-tables.html; things like 'vizier:Tycho2' or 'vizier:I/345/gaia2')
+       xcat= ('vizier:I/350/gaiaedr3') name of the catalog to cross-match against, in a format understood by the CDS cross-matching service (see http://cdsxmatch.u-strasbg.fr/xmatch/doc/available-tables.html; things like 'vizier:Tycho2' or 'vizier:I/345/gaia2')
        maxdist= (2) maximum distance in arcsec
        colRA= ('RA') name of the tag in cat with the right ascension
        colDec= ('DEC') name of the tag in cat with the declination
@@ -204,8 +204,8 @@ def cds(cat,xcat='vizier:I/345/gaia2',maxdist=2,colRA='RA',colDec='DEC',
         try:
             job= Gaia.launch_job_async(
                 """select g.*, m.RA as mRA, m.DEC as mDEC
-from %s.gaia_source as g
-inner join tap_upload.my_table as m on m.source_id = g.source_id""" % table_identifier,
+from .gaia_source as g
+inner join tap_upload.my_table as m on m.source_id = g.source_id""",
                                        upload_resource=xmlfilename,
                                        upload_table_name="my_table")
             ma= job.get_results()
