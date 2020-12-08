@@ -201,6 +201,8 @@ def cds(cat,xcat='vizier:I/350/gaiaedr3',maxdist=2,colRA='RA',colDec='DEC',
         tab.write(xmlfilename,format='votable')
         #get the data release....
         table_identifier = xcat.split('/')[-1]
+        if table_identifier == 'gaia2':
+            table_identifier = 'gaiadr2'
         try:
             job= Gaia.launch_job_async(
                 """select g.*, m.RA as mRA, m.DEC as mDEC
