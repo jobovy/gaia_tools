@@ -143,13 +143,14 @@ distances, or only the ages using ``use_astroNN_abundances``,
 ``use_astroNN_distances``, and ``use_astroNN_ages``, respectively.
 
 The ``GALAH``, ``apogee``, and ``apogeerc`` catalog can also be
-cross-matched to Gaia DR2 upon loading, e.g., as::
+cross-matched to Gaia EDR3 upon loading, e.g., as::
 
-  rc_cat, gaia2_matches= gload.apogeerc(xmatch='gaiadr2')
+  rc_cat, gaia2_matches= gload.apogeerc(xmatch='gaiaedr3')
 
 through an interface to the ``gaia_tools.xmatch.cds`` function
 described below (keywords of that function can be specified here as
-well). This will return only the stars in the overlap of the two
+well). Use ``xmatch='gaiadr2'`` to match to the earlier Gaia DR2
+data. This will return only the stars in the overlap of the two
 catalogs. The results from the cross-match are cached such that this
 function will run much faster the second time if run with the same
 parameters. Note that the caching ignores the option
@@ -243,7 +244,8 @@ GALAH DR2 catalog to the Gaia DR2 catalog, do the following::
    print(galah_cat['raj2000'][matches_indx[0]],gaia2_matches['ra_epoch2000'][0],gaia2_matches['pmra'][matches_indx[0]],gaia2_matches['pmdec'][matches_indx[0]])
    (0.00047,0.00049021022,22.319,-10.229)
 
-If you want *all* columns in Gaia DR2, specify
+Use ``xcat='vizier:I/350/gaiaedr3'`` to match to Gaia EDR3 instead. If
+you want *all* columns in Gaia DR2 or Gaia EDR3, specify
 ``gaia_all_columns=True``. This will first run the CDS cross-match,
 then upload the result to the Gaia Archive, and join to the
 ``gaia_source`` table to return all columns. If the Gaia Archive
@@ -256,18 +258,21 @@ If you want to download a catalog from CDS, you can use
 Tools for querying the Gaia Archive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The large amount of data in Gaia's DR2 means that to access the full
-catalog, the easiest way is to perform ADQL or SQL queries against the
-`Gaia Archive database <https://gea.esac.esa.int/archive/>`__. Some
-tools to help with this are located in ``gaia_tools.query``.
+The large amount of data in Gaia's DR2 and beyond means that to access
+the full catalog, the easiest way is to perform ADQL or SQL queries
+against the `Gaia Archive database
+<https://gea.esac.esa.int/archive/>`__. Some tools to help with this
+are located in ``gaia_tools.query``.
 
-The base function in this module is ``query.query``, which
-can be used to send a query either to the central Gaia Archive or to a
-local Postgres copy of the database. When using a local copy of the
+The base function in this module is ``query.query``, which can be used
+to send a query either to the central Gaia Archive or to a local
+Postgres copy of the database. When using a local copy of the
 database, the main Gaia table is best named ``gaiadr2_gaia_source``
 (for ``gaiadr2.gaia_source`` on the Gaia Archive) and similarly
-``gaiadr2_gaia_source_with_rv`` for the RV subset. In this case, the
-*same* query can be run locally or remotely (``query.query`` will
+``gaiadr2_gaia_source_with_rv`` for the RV subset (and similar for
+``gaiaedr3_gaia_source`` for the EDR3 data, but note that local Gaia
+EDR3 queries are currently not supported). In this case, the *same*
+query can be run locally or remotely (``query.query`` will
 automatically adjust the tablename), making it easy to mix use of the
 local database and the Gaia Archive. The name and user of the local
 database can be set using the ``dbname=`` and ``user=``
@@ -277,9 +282,8 @@ Advanced tools to create and execute complex ADQL queries are included in this
 module via `query.make_query` and `query.make_simple_query`. Both functions are
 described in the following section as well as this `example document`_
 
-
-To setup your own local database with Gaia DR2, you can follow the
-steps described about halfway down `this section
+To setup your own local database with Gaia DR2 or EDR3, you can follow
+the steps described about halfway down `this section
 <http://astro.utoronto.ca/~bovy/group/data.html#2mass>`__. Note that
 you will need >1TB of space and be familiar with Postgres database
 management.

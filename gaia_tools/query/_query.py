@@ -28,7 +28,11 @@ def query(sql_query,local=False,timeit=False,use_cache=True,verbose=False,
     HISTORY:
        2018-05-02 - Written - Bovy (UofT)
     """
-    if local and 'gaiadr2.' in sql_query:
+    if local and 'gaiaedr3.' in sql_query:
+        sql_query= sql_query.replace('gaiaedr3.','gaiaedr3_')
+    elif not local and 'gaiaedr3_' in sql_query:
+        sql_query= sql_query.replace('gaiaedr3_','gaia3dr3.')
+    elif local and 'gaiadr2.' in sql_query:
         sql_query= sql_query.replace('gaiadr2.','gaiadr2_')
     elif not local and 'gaiadr2_' in sql_query:
         sql_query= sql_query.replace('gaiadr2_','gaiadr2.')

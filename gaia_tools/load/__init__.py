@@ -64,7 +64,7 @@ def apogee(xmatch=None,**kwargs):
     
        ALWAYS ALSO
 
-       xmatch= (None) if set, cross-match against a Vizier catalog (e.g., vizier:I/345/gaia2 for Gaia DR2) using gaia_tools.xmatch.cds and return the overlap
+       xmatch= (None) if set, cross-match against a Vizier catalog (e.g., vizier:I/345/gaia2 for Gaia DR2 or vizier:I/350/gaiaedr3 for Gaia EDR3) using gaia_tools.xmatch.cds and return the overlap
        +gaia_tools.xmatch.cds keywords
     OUTPUT:
        allStar data[,xmatched table]
@@ -129,7 +129,7 @@ def apogeerc(xmatch=None,**kwargs):
 
        ALWAYS ALSO
 
-       xmatch= (None) if set, cross-match against a Vizier catalog (e.g., vizier:I/345/gaia2 for Gaia DR2) using gaia_tools.xmatch.cds and return the overlap
+       xmatch= (None) if set, cross-match against a Vizier catalog (e.g., vizier:I/345/gaia2 for Gaia DR2 or vizier:I/350/gaiaedr3 for Gaia EDR3) using gaia_tools.xmatch.cds and return the overlap
        +gaia_tools.xmatch.cds keywords
     OUTPUT:
        APOGEE RC sample data[,xmatched table]
@@ -305,7 +305,7 @@ def galah(dr=3,ages=False,ages_join_type='inner',
        ages_join_type= ('inner') type of table join to do between the main catalog and the ages VAC: 'inner' returns only the overlap, 'left' returns all main with masked ages VAC entries for those not in the overlap
        dynamics= (False; DR >= 3) if True, add dynamics info from VAC
        dynamics_join_type= ('inner') type of table join to do between the main catalog and the dynamics VAC: 'inner' returns only the overlap, 'left' returns all main with masked dynamics VAC entries for those not in the overlap. Note that in DR3 at least, all main catalog entries are in the dynamics VAC, so the type of merge doesn't matter
-       xmatch= (None) if set, cross-match against a Vizier catalog (e.g., vizier:I/345/gaia2 for Gaia DR2) using gaia_tools.xmatch.cds and return the overlap
+       xmatch= (None) if set, cross-match against a Vizier catalog (e.g., vizier:I/345/gaia2 for Gaia DR2 or vizier:I/350/gaiaedr3 for Gaia EDR3) using gaia_tools.xmatch.cds and return the overlap
        +gaia_tools.xmatch.cds keywords
     OUTPUT:
        data table[,xmatched table]
@@ -446,6 +446,8 @@ def tgas(dr=1):
 def _xmatch_cds(data,xcat,filePath,**kwargs):
     if xcat.lower() == 'gaiadr2' or xcat.lower() == 'gaia2':
         xcat= 'vizier:I/345/gaia2'
+    elif xcat.lower() == 'gaiaedr3' or xcat.lower() == 'gaiae3':
+        xcat= 'vizier:I/350/gaiaedr3'
     maxdist= kwargs.pop('maxdist',2.)
     # Check whether the cached x-match exists
     xmatch_filename= xmatch_cache_filename(filePath,xcat,maxdist)
