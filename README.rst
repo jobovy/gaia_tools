@@ -107,7 +107,7 @@ Similarly, you can load the RV subsample of `Gaia DR2 <https://www.cosmos.esa.in
 
     gaiarv_cat= gload.gaiarv()
 
-which again downloads the data upon the first invocation (and also converts it to fits format for faster access in the futures; not that the original CSV files are retained under ``$GAIA_TOOLS_DATA/Gaia/gdr2/gaia_source_with_rv/csv`` and you might want to delete these to save space).
+which again downloads the data upon the first invocation (and also converts it to fits format for faster access in the future; note that the original CSV files are retained under ``$GAIA_TOOLS_DATA/Gaia/gdr2/gaia_source_with_rv/csv`` and you might want to delete these to save space).
 
 ``gaia_tools`` can also load data from various additional surveys, for example, for the `GALAH <https://galah-survey.org/>`__ survey's DR3 data, do (older DRs are also available)::
 
