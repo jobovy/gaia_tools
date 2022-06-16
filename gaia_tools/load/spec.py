@@ -83,7 +83,7 @@ def read_spec_internal(source_ids, assume_unique, base_path, wavelength_grid):
             first_occurence_idx = np.argmax(source_ids == source_ids[i])
             all_spec[i] = all_spec[first_occurence_idx]
             all_spec_error[i] = all_spec_error[first_occurence_idx]
-            not_found[i] = False
+            not_found[i] = not_found[first_occurence_idx]
             
     if np.any(not_found):
         warnings.warn(f"These source id have no corresponding spectra found: {source_ids[not_found]}")
