@@ -67,10 +67,11 @@ def read_spec_internal(source_ids, assume_unique, base_path, wavelength_grid):
                 assume_unique=False,
                 return_indices=True,
             )
-            current_idx = np.where(combo_comparisons[:, idx])[0][idx1]
-            all_spec[current_idx] = np.vstack(spec_f["flux"][idx2])
-            all_spec_error[current_idx] = np.vstack(spec_f["flux_error"][idx2])
-            not_found[current_idx] = False
+            if len(matches) > 0:
+                current_idx = np.where(combo_comparisons[:, idx])[0][idx1]
+                all_spec[current_idx] = np.vstack(spec_f["flux"][idx2])
+                all_spec_error[current_idx] = np.vstack(spec_f["flux_error"][idx2])
+                not_found[current_idx] = False
 
     # deal with duplicated source_id
     if not assume_unique:
