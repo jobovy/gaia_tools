@@ -257,8 +257,7 @@ If you want to download a catalog from CDS, you can use
 
 Reading RVS or XP spectra
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-here is a sample usage for a single stars
-.. code-block:: python
+To read Gaia RVS or XP spectra, here is a sample usage for a single stars::
 
     from gaia_tools.load.spec import load_rvs_spec, load_xp_sampled_spec
 
@@ -269,8 +268,7 @@ here is a sample usage for a single stars
     wavelength, flux, flux_err = load_rvs_spec(2771993642553377280)
 
 
-You can also supply a list of source id
-.. code-block:: python
+You can also supply a list of source id::
 
     from gaia_tools.load.spec import load_rvs_spec, load_xp_sampled_spec
 
