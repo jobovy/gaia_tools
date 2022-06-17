@@ -2,7 +2,6 @@ import os
 import glob
 import tqdm
 import numpy as np
-import pandas as pd
 from astropy.io import ascii
 from itertools import compress
 import warnings
@@ -106,7 +105,7 @@ def load_rvs_spec(source_ids, assume_unique=False):
         2022-06-16 - Written - Henry Leung (UofT)
     """
     base_path = os.path.join(
-        _GAIA_TOOLS_DATA, "Gaia/gdr3/Spectroscopy/rvs_mean_spectrum/"
+        _GAIA_TOOLS_DATA, "Gaia","gdr3","Spectroscopy","rvs_mean_spectrum"
     )
     wavelength_grid = np.arange(846, 870.01, 0.01)
     return read_spec_internal(
@@ -132,7 +131,7 @@ def load_xp_sampled_spec(source_ids, assume_unique=False):
         2022-06-16 - Written - Henry Leung (UofT)
     """
     base_path = os.path.join(
-        _GAIA_TOOLS_DATA, "Gaia/gdr3/Spectroscopy/xp_sampled_mean_spectrum/"
+        _GAIA_TOOLS_DATA, "Gaia","gdr3","Spectroscopy","xp_sampled_mean_spectrum"
     )        
     wavelength_grid = np.arange(336.0, 1022.0, 2.0)
     return read_spec_internal(
