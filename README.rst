@@ -255,6 +255,34 @@ returned by CDS is returned instead.
 If you want to download a catalog from CDS, you can use
 ``gaia_tools.load.download.vizier``.
 
+Reading RVS or XP spectra
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+here is a sample usage for a single stars
+.. code-block:: python
+
+    from gaia_tools.load.spec import load_rvs_spec, load_xp_sampled_spec
+
+    # load Gaia DR3 2771993642553377280 xp spectrum
+    wavelength, flux, flux_err = load_xp_sampled_spec(2771993642553377280)
+
+    # load Gaia DR3 2771993642553377280 rvsspectrum
+    wavelength, flux, flux_err = load_rvs_spec(2771993642553377280)
+
+
+You can also supply a list of source id
+.. code-block:: python
+
+    from gaia_tools.load.spec import load_rvs_spec, load_xp_sampled_spec
+
+    # load Gaia DR3 2771993642553377280 and 383167952467292288
+    wavelength, flux, flux_err = load_xp_sampled_spec([2771993642553377280, 383167952467292288])
+
+    # also support loading a list of source id with duplicated entries (e.g. from APOGEE allstar some are duplicated)
+    wavelength, flux, flux_err = load_xp_sampled_spec([2771993642553377280, 383167952467292288, 2771993642553377280])
+
+    # also support loading a list of source id with some stars not having corresponding spectra, returning zero array for that star with warnings
+    wavelength, flux, flux_err = load_xp_sampled_spec([2771993642553377280, 1234567891234567891])
+
 Tools for querying the Gaia Archive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
