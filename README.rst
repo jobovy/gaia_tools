@@ -8,6 +8,8 @@ data and related data sets (`APOGEE
 <http://dr2.lamost.org/>`__, and `RAVE
 <https://www.rave-survey.org/project/>`__).
 
+**PLEASE NOTE THAT THIS PROJECT IS CURRENTLY UNMAINTAINED, AS OF 01/01/2025**
+
 .. contents::
 
 AUTHORS
